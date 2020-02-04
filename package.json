@@ -1,0 +1,22 @@
+{
+  "name": "serv",
+  "version": "1.0.0",
+  "description": "Your Average Server Bot design to Serv you",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"This is a test\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NickGenghar/Serv.git"
+  },
+  "author": "Nick Genghar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NickGenghar/Serv/issues"
+  },
+  "homepage": "https://github.com/NickGenghar/Serv#readme",
+  "dependencies": {
+    "discord.js": "github:discordjs/discord.js"
+  }
+}
