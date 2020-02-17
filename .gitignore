@@ -1,2 +1,8 @@
 node_modules/
+data/
+temp/
+.vscode/
+configurations/token.json
 package-lock.json
+tester.js
+test.js
