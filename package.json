@@ -22,8 +22,8 @@
     "node-opus": "^0.3.3",
     "request": "^2.88.2",
     "simple-youtube-api": "^5.2.1",
-    "twitter": "^1.7.1",
-    "ytdl-core": "^1.0.7"
+    "twit": "^2.2.11",
+    "ytdl-core": "^1.0.9"
   },
   "nodemonConfig": {
     "delay": "300000"

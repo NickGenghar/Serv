@@ -7,6 +7,18 @@ const token = process.env.token || require('./configurations/token.json').token;
 
 const bot = new Discord.Client();
 
+//Clear temp folder at startup
+let clear = () => {
+    fs.readdir('./temp', (e, f) => {
+        let files = f.filter(e => {if(e.indexOf('.') > -1) return e});
+        files.forEach(g => {
+            fs.unlink(`./temp/${g}`, e => {
+                if(e) return console.log(e);
+            })
+        })
+    })
+}
+
 let reload = () => {
     bot.commands = new Discord.Collection();
     bot.sideload = new Discord.Collection();
@@ -56,6 +68,7 @@ let reload = () => {
     }
 }
 
+clear();
 reload();
 
 if(bot.commands.length <= 0) {
