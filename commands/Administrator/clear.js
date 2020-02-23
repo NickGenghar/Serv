@@ -18,15 +18,21 @@ module.exports = {
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
 
         await msg.delete().catch(e => console.log(e));
-        if(dev.includes(msg.author.id)) {
-            if(args[0] == 'c') return console.clear();
+        if(dev.includes(msg.author.id))
+        if(args[0] == 'c')
+        return console.clear();
+
+        if(!isNaN(args[0])) {
+            if(args[0] > 100)
+            args[0] = 100;
+
+            msg.channel.bulkDelete(args[0], true)
+            .then(m => {
+                msg.channel.send(`Deleted \`${m.size}\` ${m.size <= 1 ? 'message': 'messages'}.`)
+                .then(m => m.delete({timeout: 2000})
+                .catch(e => {console.log(e)}))
+            })
+            .catch(e => {console.log(e)});
         }
-        msg.channel.bulkDelete(args[0], true)
-        .then(m => {
-            msg.channel.send(`Deleted \`${m.size}\` ${m.size <= 1 ? 'message': 'messages'}.`)
-            .then(m => m.delete({timeout: 2000})
-            .catch(e => {console.log(e)}))
-        })
-        .catch(e => {console.log(e)});
     }
 }

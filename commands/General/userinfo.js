@@ -11,10 +11,10 @@ module.exports = {
         'Username: Target user.'
     ],
     run: async (msg, args) => {
-        let User = msg.mentions.members.first() || msg.guild.members.get(args[0]);
+        let User = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
 
-        if (!User) User = msg.author;
-        if (User.username == void (0)) User = User.user;
+        if(!User) User = msg.author;
+        if(!User.username) User = User.user;
 
         let userinfoEmbed = new Discord.MessageEmbed()
             .setTitle('User Information')

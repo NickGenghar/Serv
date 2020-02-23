@@ -8,11 +8,11 @@ const key = process.env.ytkey || require('../../configurations/token.json').ytke
 const youtube = new YT(key);
 
 let play = (msg, song, queue) => {
-    const SQ = queue.get(msg.guild.id);
+    const SQ = queue.get(`${msg.guild.id}.music`);
 
     if(!song) {
         SQ.vChan.leave();
-        queue.delete(msg.guild.id);
+        queue.delete(`${msg.guild.id}.music`);
         return msg.channel.send('Queue finished.');
     }
 
@@ -33,14 +33,14 @@ let play = (msg, song, queue) => {
     .on('error', (e) => {
         msg.channel.send('Encountered error during playback. Stopping...');
         SQ.vChan.leave();
-        queue.delete(msg.guild.id);
+        queue.delete(`${msg.guild.id}.music`);
         console.log(e);
     });
     dispatcher.setVolumeLogarithmic(1);
 };
 
 let vHandler = async (msg, streamData, queue) => {
-    const SQ = queue.get(msg.guild.id);
+    const SQ = queue.get(`${msg.guild.id}.music`);
 
     if(!SQ) {
         const QCon = {
@@ -50,7 +50,7 @@ let vHandler = async (msg, streamData, queue) => {
             songs: [],
             playing: true
         };
-        queue.set(msg.guild.id, QCon);
+        queue.set(`${msg.guild.id}.music`, QCon);
 
         QCon.songs = QCon.songs.concat(streamData);
 
@@ -59,7 +59,7 @@ let vHandler = async (msg, streamData, queue) => {
             QCon.connection = connection;
             await play(msg, QCon.songs[0], queue);
         } catch(e) {
-            queue.delete(msg.guild.id);
+            queue.delete(`${msg.guild.id}.music`);
             msg.guild.me.voice.channel.leave();
             msg.channel.send('Encountered error during connection.');
             console.log(e);
@@ -73,7 +73,7 @@ let vHandler = async (msg, streamData, queue) => {
         .addField('Added To Queue', streamData.title);
     
         msg.channel.send({embed: playAddEmbed});
-    }
+    }msg.guild.id
 }
 
 module.exports = {
@@ -101,7 +101,7 @@ module.exports = {
             pl = init;
             fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(init));
         }
-        let SQ = queue.get(msg.guild.id);
+        let SQ = queue.get(`${msg.guild.id}.music`);
 
         if(SQ && !args[0]) {
             if(SQ.playing) {

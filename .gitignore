@@ -1,8 +1,7 @@
 node_modules/
 data/
 temp/
+test/
 .vscode/
 configurations/token.json
 package-lock.json
-tester.js
-test.js

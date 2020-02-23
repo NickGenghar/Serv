@@ -9,7 +9,7 @@ module.exports = {
     desc: 'Get\'s the currently playing audio track',
     usage: ['queue'],
     run: async (msg, args, queue) => {
-        let SQ = queue.get(msg.guild.id);
+        let SQ = queue.get(`${msg.guild.id}.music`);
         if(!SQ) return;
         let playEmbed = new Discord.MessageEmbed()
         .setThumbnail(SQ.songs[0].thumbnail)

@@ -8,7 +8,7 @@ module.exports = {
     alias: [],
     desc: '',
     usage: [],
-    run: async (msg, args) => {
+    run: async (msg, args, queue) => {
         await msg.delete().catch(e => console.log(e));
 
         if(!dev.includes(msg.author.id)) return;

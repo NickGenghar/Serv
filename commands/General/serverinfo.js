@@ -17,7 +17,7 @@ module.exports = {
             .addField('Server Owner', msg.guild.owner, true)
             .addField('Server Region', msg.guild.region, true)
             .addField('Created since', msg.guild.createdAt, true)
-            .addField('Available Roles', msg.guild.roles.array().sort(), true)
+            .addField('Available Roles', msg.guild.roles.cache.array().sort(), true)
             .addField('Requested by', msg.author, true)
             .addField('You joined since', msg.member.joinedAt, true)
             .addField('Members', msg.guild.memberCount);

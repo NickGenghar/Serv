@@ -4,9 +4,9 @@ module.exports = {
     desc: 'Leaves the voice channel',
     usage: ['leave'],
     run: async (msg, args, queue) => {
-        let SQ = queue.get(msg.guild.id);
+        let SQ = queue.get(`${msg.guild.id}.music`);
         if(SQ) {
-            queue.delete(msg.guild.id);
+            queue.delete(`${msg.guild.id}.music`);
             msg.channel.send('Queue data has been cleared.');
         }
 

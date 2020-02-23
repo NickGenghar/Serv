@@ -56,7 +56,7 @@ module.exports = {
             return;
         }
 
-        var flag = queue.get(msg.guild.id);
+        var flag = queue.get(`${msg.guild.id}.twitter`);
 
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.tweetChan == '') return msg.channel.send('Twitter channel not defined. Please set a Twitter channel to retrieve tweet stream with `//setup set tweets <channel>`.');
@@ -81,8 +81,8 @@ module.exports = {
                 });
 
                 if(!flag) {
-                    queue.set(msg.guild.id, stream);
-                    flag = queue.get(msg.guild.id);
+                    queue.set(`${msg.guild.id}.twitter`, stream);
+                    flag = queue.get(`${msg.guild.id}.twitter`);
                 }
 
                 msg.channel.send(`Streaming Twitter user: \`${user.data[0].screen_name}\``);
@@ -116,7 +116,7 @@ module.exports = {
             if(mode == 'stop') {
                 if(!flag) return;
                 flag.stop();
-                queue.delete(msg.guild.id);
+                queue.delete(`${msg.guild.id}.twitter`);
                 msg.channel.send('Stopped streaming Twitter user.');
             }
         }

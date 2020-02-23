@@ -4,7 +4,7 @@ module.exports = {
     desc: 'Loop the playback',
     usage: ['//loop'],
     run: async (msg, args , queue) => {
-        let SQ = queue.get(msg.guild.id);
+        let SQ = queue.get(`${msg.guild.id}.music`);
 
         if(!SQ) return;
         if(SQ.loop) {
