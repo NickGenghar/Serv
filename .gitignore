@@ -3,5 +3,6 @@ data/
 temp/
 test/
 .vscode/
+commands/Developer/upgrade.js
 configurations/token.json
 package-lock.json

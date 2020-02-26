@@ -14,7 +14,7 @@ module.exports = {
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
 
-        if(args) {
+        if(args[0]) {
             let announcement = args.join(' ');
 
             if (!msg.guild.me.hasPermission(['MENTION_EVERYONE'])) {

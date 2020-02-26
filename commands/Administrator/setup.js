@@ -11,7 +11,11 @@ var serverConfig = {
     logChan: '',
     loggedChan: [],
     noInvite: true,
-    tweetChan: ''
+    tweetChan: '',
+    lvlmul: 1,
+    lvlincrementmax: 5,
+    lvlincrementmin: 0,
+    lvlbuf: 60000
 };
 
 module.exports = {
@@ -58,14 +62,15 @@ module.exports = {
             for(let i = 0; i < svr.modRole.length; i++)
             moderatorRole.push(msg.guild.roles.cache.find(role => role.id == svr.modRole[i]));
 
-            try {var logChannel = msg.guild.channels.cache.find(c => c.id == svr.logChan);}
-            catch(e) {var logChannel = 'No Logging Channel Set.';}
+            try {
+                var logChannel = msg.guild.channels.cache.find(c => c.id == svr.logChan);
+                if(!logChannel) logChannel = 'No Logging Channel Set.';
+            } catch(e) {var logChannel = 'No Logging Channel Set.';}
 
             try {
                 var twChannel = msg.guild.channels.cache.find(c => c.id == svr.tweetChan);
                 if(!twChannel) var twChannel = 'No Twitter Channel Set.';
-            }
-            catch(e) { var twChannel = 'No Twitter Channel Set.';}
+            } catch(e) { var twChannel = 'No Twitter Channel Set.';}
 
             setupEmbed.setTitle(`Current Configurations of ${msg.guild.name}`)
             .setDescription(`Server Prefix: **[ ${svr.prefix} ]**`)
@@ -127,6 +132,49 @@ module.exports = {
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send(`Channel ${tweetChannel} has been set as Twitter Channel`);
                         } break;
+
+                        case('level-multiplier'): {
+                            if(isNaN(O)) return msg.channel.send('Provided value is not a valid number.');
+                            if(O < 0) return msg.channel.send('Provided value is not of positive range.');
+                            svr.lvlmul = O;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Level multiplier has been set to ${O}.`);
+                        } break;
+
+                        case('level-increment'): {
+                            if(isNaN(O)) return msg.channel.send('Provided value is not a valid number.');
+                            if(O < 0) return msg.channel.send('Provided value is not of positive range.');
+                            svr.lvlincrement = Math.floor(O);
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Level increment maximum has been set to ${O}.`);
+                        } break;
+
+                        case('level-increment-max'): {
+                            if(isNaN(O)) return msg.channel.send('Provided value is not a valid number.');
+                            if(O < 0) return msg.channel.send('Provided value is not of positive range.');
+                            if(O < svr.lvlincrementmin) return msg.channel.send('Provided value is less than minimum.');
+                            if(O > svr.lvlincrement) return msg.channel.send('Provided value is greater than increment.');
+                            svr.lvlincrementmax = Math.floor(O);
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Level increment maximum has been set to ${O}.`);
+                        } break;
+
+                        case('level-increment-min'): {
+                            if(isNaN(O)) return msg.channel.send('Provided value is not a valid number.');
+                            if(O < 0) return msg.channel.send('Provided value is not of positive range.');
+                            if(O > svr.lvlincrementmax) return msg.channel.send('Provided value is greater than minimum.');
+                            svr.lvlincrementmin = Math.ceil(O);
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Level increment minimum has been set to ${O}.`);
+                        } break;
+
+                        case('level-timeout'): {
+                            if(isNaN(O)) return msg.channel.send('Provided value is not a valid number.');
+                            if(O < 0) return msg.channel.send('Provided value is not of positive range.');
+                            svr.lvlbuf = O*1000;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Leveling timeout has been set to ${O} seconds.`);
+                        } break;
                     }
                 } break;
 
@@ -140,6 +188,14 @@ module.exports = {
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send(`Role ${moderatorRole} has been added as Moderator Role.`);
                         } break;
+
+                        case('modules'): {
+                            let comm = msg.client.commands.get(O);
+                            if(!comm) return msg.channel.send('Provided module name doesn\'t exist.');
+                            svr.modules.push(O);
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Module ${comm.name} has been added to Active Server Module.`);
+                        } break;
                     }
                 } break;
 
@@ -150,6 +206,15 @@ module.exports = {
                             svr.tweetChan = '';
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send(`Channel ${tweetChannel} has been remove from Twitter Channel.`);
+                        } break;
+
+                        case('modules'): {
+                            let comm = msg.client.commands.get(O);
+                            if(!comm) return msg.channel.send('Provided module name doesn\'t exist.');
+                            if(svr.modules.indexOf(O) > -1)
+                            svr.modules = svr.modules.filter(i => i != O);
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Module ${comm.name} has been removed from Active Server Module.`);
                         } break;
                     }
                     if(M == 'prefix') {

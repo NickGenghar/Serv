@@ -33,7 +33,8 @@ module.exports = {
 
         var args = msg.content.split(/ +/);
         var coms = args.shift();
-        coms = coms.indexOf(prefix) > -1 ? coms.slice(prefix.length) : coms;
+        if(coms.indexOf(prefix) == 0) coms = coms.slice(prefix.length);
+        else return;
         var execute = msg.client.commands.get(coms) || msg.client.commands.find(a => a.alias && a.alias.includes(coms));
         if(!execute) return;
         try {

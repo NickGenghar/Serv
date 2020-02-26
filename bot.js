@@ -7,6 +7,10 @@ const token = process.env.token || require('./configurations/token.json').token;
 
 const bot = new Discord.Client();
 
+process.on('unhandledRejection', e => {
+    console.log(e);
+});
+
 //Clear temp folder at startup
 let clear = () => {
     fs.readdir('./temp', (e, f) => {
@@ -81,6 +85,18 @@ bot.login(token);
 bot.once('ready', () => {
     console.log('\x1b[32m%s\x1b[0m','Serv Ready.');
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
+})
+
+bot.on('message', msg => {
+    let cmd;
+    if(bot.sideload) cmd = bot.sideload.get('levels');
+    else return;
+
+    try{
+        cmd.run(msg);
+    } catch(e) {
+        if(e) throw e;
+    }
 })
 
 bot.on('message', async msg => {
