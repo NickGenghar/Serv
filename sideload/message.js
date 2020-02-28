@@ -21,6 +21,7 @@ module.exports = {
             let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
             if(!svr) fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
         } catch(e) {
+            if(msg.channel.type == 'dm') return;
             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
         }
         let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
