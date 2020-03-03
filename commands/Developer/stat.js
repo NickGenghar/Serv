@@ -11,8 +11,6 @@ module.exports = {
     desc: 'Get\'s the bot\'s hosting server statistics.',
     usage: ['stats'],
     run: async (msg, args) => {
-        if(!dev.includes(msg.author.id)) return;
-
         let cpu;
 		try {
 			cpu = os.cpus()[0].model;
