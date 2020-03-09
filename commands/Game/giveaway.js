@@ -29,7 +29,7 @@ module.exports = {
         duration = duration.split('');
         let tSwitch = duration.pop();
         tSwitch = tSwitch.toLowerCase();
-        parseInt(duration.join(''));
+        duration = parseInt(duration.join(''));
 
         switch(tSwitch) {
             case('s'): {duration = duration * 1000;} break;
@@ -58,18 +58,21 @@ module.exports = {
                     pool = [msg.guild.members.cache.get(data[0])];
                 } else if(data.length > 1) {
                     for(let i = 0; i < winners; i++) {
+                        let index;
+
                         if(data.length <= 0) break;
+                        else if(data.length == 1) index = [0];
+                        else {
+                            index = await randomOrg.integers({
+                                num: 1,
+                                min: 0,
+                                max: data.length - 1
+                            });
+                        }
 
-                        const v = await randomOrg.integers({
-                            num: 1,
-                            min: 0,
-                            max: data.length - 1
-                        })
-
-                        let member = msg.guild.members.cache.get(data[v[0]]);
-                        console.log(data[v[0]]);
+                        let member = msg.guild.members.cache.get(data[index[0]]);
                         pool.push(member);
-                        data = data.filter((d,n) => {return d[n] != v[0]});
+                        data = data.filter((d,n) => {return n != index[0]});
                     }
                 } else {
                     return msg.channel.send('No participants, no winner can be chosen.');
