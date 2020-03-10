@@ -17,14 +17,14 @@
   },
   "homepage": "https://github.com/NickGenghar/Serv#readme",
   "dependencies": {
+    "@discordjs/opus": "^0.1.0",
     "archiver": "^3.1.1",
-    "discord.js": "github:discordjs/discord.js",
-    "node-opus": "^0.3.3",
+    "discord.js": "^12.0.2",
     "random-org-http": "0.0.8",
     "request": "^2.88.2",
     "simple-youtube-api": "^5.2.1",
     "twit": "^2.2.11",
-    "ytdl-core": "^1.0.9"
+    "ytdl-core": "^2.0.0"
   },
   "nodemonConfig": {
     "delay": "300000"
