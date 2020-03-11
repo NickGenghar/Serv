@@ -21,8 +21,13 @@ module.exports = {
     run: (msg) => {
         if(msg.author.bot) return;
 
-        const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
-        if(!svr.modules.includes('level') || msg.content.indexOf(svr.prefix) == 0) return;
+        let svr;
+        try {
+            svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
+            if(!svr.modules.includes('level') || msg.content.indexOf(svr.prefix) == 0) return;
+        } catch(e) {
+            if(e) return;
+        }
 
         let usr;
         try{

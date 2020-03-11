@@ -17,14 +17,14 @@ module.exports = {
             loggedChan: [],
             noInvite: true
         };
+        let svr;
         try {
-            let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
-            if(!svr) fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
+            svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         } catch(e) {
             if(msg.channel.type == 'dm') return;
             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
+            svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         }
-        let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         let prefix = svr.prefix || core.prefix;
 
         if(svr.noInvite && msg.content.match(/(.*)discord.gg(.*)/)) {

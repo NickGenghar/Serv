@@ -33,6 +33,7 @@ let reload = () => {
         return process.exit(-1);
     } else {
         sideloads.forEach(sides => {
+            delete require.cache[require.resolve(`./sideload/${sides}`)];
             let pull = require(`./sideload/${sides}`);
             bot.sideload.set(pull.task, pull);
         });
@@ -52,6 +53,7 @@ let reload = () => {
                 let index = 0;
                 commandFiles.forEach(files => {
                     try {
+                        delete require.cache[require.resolve(`./commands/${subFolder}/${files}`)];
                         let pull = require(`./commands/${subFolder}/${files}`);
                         command[index] = {
                             name: pull.name,
@@ -100,17 +102,10 @@ bot.on('message', msg => {
 })
 
 bot.on('message', async msg => {
-    if(dev.includes(msg.author.id) && msg.content.toLowerCase() == '///maintenance') {
-        bot.user.setPresence({activity: {name: 'Maintenance Mode', type: 'CUSTOM_STATUS'}, status: 'dnd'});
-        console.log(`\x1b[33m%s\x1b[0m`, 'Maintenance mode activated');
-        delete bot.commands;
-        delete bot.sideload;
-        delete require.cache;
-        return;
-    } else if(dev.includes(msg.author.id) && msg.content.toLowerCase() == '///reload') {
-        console.log(`\x1b[33m%s\x1b[0m`, 'Maintenance mode deactivated');
+    if(dev.includes(msg.author.id) && msg.content.toLowerCase() == '///reload') {
+        await msg.delete().catch(e => console.log(e));
+        console.log(`\x1b[33m%s\x1b[0m`, 'Reloading Commands');
         reload();
-        return bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
     }
 
     let cmd;
