@@ -12,14 +12,17 @@ module.exports = {
     run: async (msg, args) => {
         if(!dev.includes(msg.author.id)) return;
 
-        let guilds = msg.client.guilds.array();
-        let listed = [];
-        guilds.forEach(v => {
-            listed.push(v.name);
-        })
+        let guilds = msg.client.guilds.cache.array();
         let guildEmbed = new Discord.MessageEmbed()
         .setTitle('Serv is Serving in the following servers:')
-        .setDescription(`Total Servers: ${listed.length}\n\nServers:\n${listed.join('\n')}`);
+
+        for(let i = 0; i < guilds.length; i++){
+            let invites = await guilds[i].fetchInvites();
+            invites = invites.map(a => a.code);
+            if(invites.length <= 0) invites = '`No invites`';
+            guildEmbed.addField(guilds[i].name, invites, true);
+        }
+
         msg.channel.send({embed: guildEmbed});
     }
 }

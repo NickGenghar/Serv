@@ -3,20 +3,27 @@ const fs = require('fs');
 
 const dev = require('../../configurations/developer.json');
 
-module.exports = {
-    name: '',
-    alias: [],
-    desc: '',
-    usage: [],
-    run: async (msg, args, queue) => {
-        await msg.delete().catch(e => console.log(e));
+O = new Object;
 
-        if(!dev.includes(msg.author.id)) return;
+O.name = '';
+O.alias = [];
+O.desc = '';
+O.usage = [];
+O.run = async (msg, args, queue) => {
+    await msg.delete().catch(e => console.log(e));
 
-        const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
-        if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
-        if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
+    //dev only command
+    if(!dev.includes(msg.author.id)) return;
 
-        //code here
-    }
+    //server specific command
+    const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
+    if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
+    if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
+
+    //command needed to be activated first
+    if(!svr.module.includes(O.name)) return msg.channel.send('This module is not activated. Please activate it via the `setup` command.');
+
+    //code here
 }
+
+module.exports = O;

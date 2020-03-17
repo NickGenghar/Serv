@@ -9,9 +9,9 @@ const selection = [
 ]
 
 rescale = (usr, svr) => {
-    usr.xp = usr.xp - ((usr.level + 1) * svr.lvlincrement);
+    usr.xp = usr.xp - ((usr.level + 1) * svr.lvlmul);
     usr.level += 1;
-    if(usr.xp >= ((usr.level + 1) * svr.lvlincrement))
+    if(usr.xp >= ((usr.level + 1) * svr.lvlmul))
     rescale(usr, svr);
 }
 
@@ -35,12 +35,12 @@ module.exports = {
                     switch(args[2]) {
                         case('level'): {
                             usr.level = parseInt(args[3]);
-                            if(usr.xp > ((usr.level + 1) * svr.lvlincrement)) usr.xp = 0;
+                            if(usr.xp > ((usr.level + 1) * svr.lvlmul)) usr.xp = 0;
                         } break;
 
                         case('xp'): {
                             usr.xp = parseInt(args[3]);
-                            if(usr.xp > ((usr.level + 1) * svr.lvlincrement)) {
+                            if(usr.xp > ((usr.level + 1) * svr.lvlmul)) {
                                 rescale(usr, svr);
                             }
                         } break;
@@ -75,8 +75,7 @@ module.exports = {
 
                 default: {}
             }
-        }
-        else {
+        } else {
             var member = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
             if(!member) {
                 member = msg.author;
@@ -89,7 +88,7 @@ module.exports = {
         let levelsEmbed = new Discord.MessageEmbed()
         .setTitle('Rank')
         .setThumbnail(member.displayAvatarURL({size:2048}))
-        .addField('Experience', `${usr.xp} / ${(usr.level + 1) * svr.lvlincrement}`, true)
+        .addField('Experience', `${usr.xp} / ${((usr.level + 1) * svr.lvlmul)}`, true)
         .addField('Level', usr.level, true);
 
         msg.channel.send({embed: levelsEmbed});

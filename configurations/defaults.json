@@ -1,0 +1,16 @@
+{
+    "server_config": {
+        "prefix": "//",
+        "modules": ["setup","help"],
+        "modRole": [],
+        "defRole": "",
+        "logChan": "",
+        "loggedChan": [],
+        "noInvite": true,
+        "tweetChan": "",
+        "lvlmul": 1,
+        "lvlincrementmax": 5,
+        "lvlincrementmin": 0,
+        "lvlbuf": 60000
+    }
+}

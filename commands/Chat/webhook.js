@@ -194,6 +194,7 @@ module.exports = {
                 }
             });
             CMD.on('end', () => {
+                queue.delete(`${msg.guild.id}.${msg.author.id}`);
                 msg.channel.send('Webhook setup ended.');
             });
         }

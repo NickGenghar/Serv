@@ -27,6 +27,9 @@ let reload = () => {
     bot.commands = new Discord.Collection();
     bot.sideload = new Discord.Collection();
 
+    let indexSuccess = 0;
+    let indexSkipped = 0;
+    let indexFailed = 0;
     const sideloads = fs.readdirSync('./sideload').filter(file => {if(file.indexOf('.js') > -1) return file;});
     if(sideloads.length <= 0) {
         console.error('\x1b[31m%s\x1b[0m','Required directory is empty! Cannot proceed without any command modules installed. Exiting...');
@@ -55,27 +58,40 @@ let reload = () => {
                     try {
                         delete require.cache[require.resolve(`./commands/${subFolder}/${files}`)];
                         let pull = require(`./commands/${subFolder}/${files}`);
-                        command[index] = {
-                            name: pull.name,
-                            alias: pull.alias,
-                            desc: pull.desc,
-                            usage: pull.usage,
-                            run: pull.run,
-                            type: subFolder
+                        if(pull.name != '') {
+                            command[index] = {
+                                name: pull.name,
+                                alias: pull.alias,
+                                desc: pull.desc,
+                                usage: pull.usage,
+                                run: pull.run,
+                                type: subFolder
+                            }
+                            bot.commands.set(command[index].name, command[index++]);
+                            indexSuccess += 1;
+                            console.log('\x1b[36m%s\x1b[0m',`Loaded command [${pull.name}] from "./commands/${subFolder}/${files}"`);
+                        } else {
+                            indexSkipped += 1;
+                            console.log('\x1b[33m%s\x1b[0m',`Command module [${files}] has incomplete parameters. Ignoring...`);
                         }
-                        bot.commands.set(command[index].name, command[index++]);
-                        console.log('\x1b[36m%s\x1b[0m',`Loaded command [${pull.name}] from "./commands/${subFolder}/${files}"`);
                     } catch(e) {
+                        indexFailed += 1;
                         console.error('\x1b[31m%s\x1b[0m',e);
                     }
                 })
             }
         })
     }
+
+    if(indexFailed > 0)
+    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules failed to load. Check the logs to see what module failed to load.');
+    if(indexSkipped > 0)
+    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules are skipped. Check the logs to see what module skipped from loading.');
+    return [indexSuccess, indexSkipped, indexFailed];
 }
 
-clear();
 reload();
+clear();
 
 if(bot.commands.length <= 0) {
     console.error('\x1b[31m%s\x1b[0m', 'All command subfolders are empty! Cannot proceed without any command modules installed. Exiting...');

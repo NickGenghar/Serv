@@ -3,20 +3,7 @@ const fs = require('fs');
 
 const core = require('../../configurations/core.json');
 
-var serverConfig = {
-    prefix: core.prefix,
-    modules: ['setup','help'],
-    modRole: [],
-    defRole: '',
-    logChan: '',
-    loggedChan: [],
-    noInvite: true,
-    tweetChan: '',
-    lvlmul: 1,
-    lvlincrementmax: 5,
-    lvlincrementmin: 0,
-    lvlbuf: 60000
-};
+var serverConfig = require('../../configurations/defaults.json').server_config;
 
 module.exports = {
     name: 'setup',
@@ -45,13 +32,13 @@ module.exports = {
     run: async (msg, args) => {
         var svr;
         var setupEmbed = new Discord.MessageEmbed();
+
         try{
             svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
-            if(!svr) fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
         } catch(e) {
             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
+            svr = serverConfig;
         }
-        svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
 
         if(args.length <= 0) {
             let loggedChannel = [];
@@ -175,6 +162,8 @@ module.exports = {
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send(`Leveling timeout has been set to ${O} seconds.`);
                         } break;
+
+                        default: return msg.channel.send(`Unknown option: ${M}`);
                     }
                 } break;
 
@@ -196,6 +185,8 @@ module.exports = {
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send(`Module ${comm.name} has been added to Active Server Module.`);
                         } break;
+
+                        default: return msg.channel.send(`Unknown option: ${M}`);
                     }
                 } break;
 
@@ -216,29 +207,38 @@ module.exports = {
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send(`Module ${comm.name} has been removed from Active Server Module.`);
                         } break;
-                    }
-                    if(M == 'prefix') {
-                        svr.prefix = core.prefix;
-                        fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
-                        msg.channel.send('Prefix has been reset to the default prefix: **[//]**');
-                    } else if(M == 'mod') {
-                        let moderatorRole = msg.mentions.roles.first() || msg.guild.roles.cache.find(role => role.id == O);
-                        if(!moderatorRole) return msg.channel.send(`Role ${O} is invalid.`);
-                        if(!svr.modRole.includes(moderatorRole.id)) return msg.channel.send(`Role ${O} is not set as Moderator Role.`);
-                        svr.modRole = svr.modRole.filter(m => m != moderatorRole.id);
-                        fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
-                        msg.channel.send(`Role ${moderatorRole} has been remove from Moderator Role.`);
-                    } else if(M == 'log') {
-                        let loggingChannel = msg.mentions.channels.first() || msg.guild.channels.cache.find(chan => chan.id == O);
-                        if(!loggingChannel) return msg.channel.send(`Channel ${O} is invalid.`);
-                        if(svr.logChan != loggingChannel.id) return msg.channel.send(`Channel ${loggingChannel} is not set as Logging Channel.`);
-                        svr.logChan = '';
-                        fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
-                        msg.channel.send(`Channel ${loggingChannel} has been remove from Logging Channel`);
-                    } else if(M == 'invite') {
-                        svr.noInvite = true;
-                        fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
-                        msg.channel.send('Invite link is now prohibited in this server.');
+
+                        case('prefix'): {
+                            svr.prefix = core.prefix;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send('Prefix has been reset to the default prefix: **[//]**');
+                        } break;
+
+                        case('mod'): {
+                            let moderatorRole = msg.mentions.roles.first() || msg.guild.roles.cache.find(role => role.id == O);
+                            if(!moderatorRole) return msg.channel.send(`Role ${O} is invalid.`);
+                            if(!svr.modRole.includes(moderatorRole.id)) return msg.channel.send(`Role ${O} is not set as Moderator Role.`);
+                            svr.modRole = svr.modRole.filter(m => m != moderatorRole.id);
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Role ${moderatorRole} has been remove from Moderator Role.`);
+                        } break;
+
+                        case('log'): {
+                            let loggingChannel = msg.mentions.channels.first() || msg.guild.channels.cache.find(chan => chan.id == O);
+                            if(!loggingChannel) return msg.channel.send(`Channel ${O} is invalid.`);
+                            if(svr.logChan != loggingChannel.id) return msg.channel.send(`Channel ${loggingChannel} is not set as Logging Channel.`);
+                            svr.logChan = '';
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send(`Channel ${loggingChannel} has been remove from Logging Channel`);
+                        } break;
+
+                        case('invite'): {
+                            svr.noInvite = true;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send('Invite link is now prohibited in this server.');
+                        }
+
+                        default: return msg.channel.send(`Unknown option: ${M}`);
                     }
                 } break;
 

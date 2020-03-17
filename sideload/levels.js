@@ -52,7 +52,7 @@ module.exports = {
         if(Date.now() - usr.buffer < svr.lvlbuf) return;
         else usr.buffer = Date.now();
 
-        let cap = (usr.level + 1) * svr.lvlincrement;
+        let cap = (usr.level + 1) * svr.lvlmul;
         let multiplier = Math.floor(Math.random() * (svr.lvlincrementmax - svr.lvlincrementmin + 1) + svr.lvlincrementmin) * svr.lvlmul;
         usr.xp += multiplier;
 
