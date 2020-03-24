@@ -11,6 +11,28 @@ process.on('unhandledRejection', e => {
     console.log(e);
 });
 
+//Create directory tree for data storage at first launch from clone.
+fs.access('./data', (e) => {
+    if(e) {
+        console.log('\x1b[33m%s\x1b[0m','Directory doesn\'t exist. Creating...');
+        fs.mkdir('./testdir', (e) => {
+            if(e) throw e;
+            fs.mkdir('./data/guilds', (e) => {
+                if(e) throw e;
+            });
+            fs.mkdir('./data/levels', (e) => {
+                if(e) throw e;
+            });
+            fs.mkdir('./data/playlist', (e) => {
+                if(e) throw e;
+            });
+            fs.mkdir('./data/users', (e) => {
+                if(e) throw e;
+            });
+        });
+    }
+})
+
 //Clear temp folder at startup
 let clear = () => {
     fs.readdir('./temp', (e, f) => {
