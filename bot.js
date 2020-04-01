@@ -15,7 +15,7 @@ process.on('unhandledRejection', e => {
 fs.access('./data', (e) => {
     if(e) {
         console.log('\x1b[33m%s\x1b[0m','Directory doesn\'t exist. Creating...');
-        fs.mkdir('./testdir', (e) => {
+        fs.mkdir('./data', (e) => {
             if(e) throw e;
             fs.mkdir('./data/guilds', (e) => {
                 if(e) throw e;
@@ -31,18 +31,27 @@ fs.access('./data', (e) => {
             });
         });
     }
-})
+});
+
+fs.access('./temp', (e) => {
+    if(e) {
+        fs.mkdir('./temp', (e) => {
+            if(e) throw e;
+        });
+    }
+});
 
 //Clear temp folder at startup
 let clear = () => {
     fs.readdir('./temp', (e, f) => {
+        if(e) throw e;
         let files = f.filter(e => {if(e.indexOf('.') > -1) return e});
         files.forEach(g => {
             fs.unlink(`./temp/${g}`, e => {
                 if(e) return console.log(e);
-            })
-        })
-    })
+            });
+        });
+    });
 }
 
 let reload = () => {
@@ -125,6 +134,42 @@ bot.login(token);
 bot.once('ready', () => {
     console.log('\x1b[32m%s\x1b[0m','Serv Ready.');
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
+});
+
+bot.on('channelCreate', async chan => {
+    let guild = chan.client.guilds.cache.find(e => e.id.toString() == chan.toJSON().guild);
+    guild.fetchWebhooks()
+    .then(a => {
+        let channelCreateEmbed = new Discord.MessageEmbed()
+        .setTitle('Channel Deleted')
+        .addField('Channel Name', chan.toJSON().name, true)
+        .addField('Channel Type', chan.type, true)
+        .addField('Created Timestamp', chan.createdAt, true);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'logging');
+        webhook.send(channelCreateEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
+});
+
+bot.on('channelDelete', async chan => {
+    let guild = chan.client.guilds.cache.find(e => e.id.toString() == chan.toJSON().guild);
+    guild.fetchWebhooks()
+    .then(a => {
+        let channelDeleteEmbed = new Discord.MessageEmbed()
+        .setTitle('Channel Deleted')
+        .addField('Channel Name', chan.toJSON().name, true)
+        .addField('Channel Type', chan.type, true)
+        .addField('Created Timestamp', chan.createdAt, true);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'logging');
+        webhook.send(channelDeleteEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
 })
 
 bot.on('message', msg => {
@@ -137,7 +182,7 @@ bot.on('message', msg => {
     } catch(e) {
         if(e) throw e;
     }
-})
+});
 
 bot.on('message', async msg => {
     if(dev.includes(msg.author.id) && msg.content.toLowerCase() == '///reload') {
@@ -155,4 +200,4 @@ bot.on('message', async msg => {
     } catch(e) {
         if(e) throw e;
     }
-})
+});

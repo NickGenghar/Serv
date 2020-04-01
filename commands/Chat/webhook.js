@@ -3,6 +3,86 @@ const fs = require('fs');
 
 const dev = require('../../configurations/developer.json');
 
+let switchero = (msg, opt, sel) => {
+    opt = opt.toLowerCase();
+    switch(opt) {
+        case('create'): {
+            if(sel.length <= 0) return msg.channel.send('Webhook name not provided.');
+            else {
+                msg.channel.createWebhook(sel, {avatar: msg.client.user.displayAvatarURL()})
+                .then(m => {
+                    msg.channel.send(`Webhook created: ${m.url}`)
+                })
+                .catch(() => {
+                    msg.channel.send('Encountered error while creating a webhook in this channel.');
+                })
+            }
+        } break;
+
+        case('find'): {
+            if(sel.length <= 0) {
+                msg.channel.fetchWebhooks()
+                .then(a => {
+                    let w = a.map(e => e.name);
+                    if(w.length <= 0) return msg.channel.send('This channel doesn\'t have any webhooks.');
+                    let webhookEmbed = new Discord.MessageEmbed()
+                    .setTitle('Webhooks in this channel')
+                    .setDescription(a.map(e => e.name).join('\n'));
+
+                    msg.channel.send({embed: webhookEmbed});
+                })
+                .catch(() => {
+                    msg.channel.send('Encountered error while searching for webhooks.');
+                });
+            } else {
+                msg.guild.fetchWebhooks()
+                .then(a => {
+                    let w = a.find(e => e.name == sel);
+                    if(!w) return msg.channel.send(`Webhook with the name **${sel}** doesn't exist.`);
+                    let webhookEmbed = new Discord.MessageEmbed()
+                    .setTitle('Webhook Info')
+                    .setThumbnail(w.avatar)
+                    .addField('Webhook Name', w.name, true)
+                    .addField('Webhook Owner', w.owner, true)
+                    .addField('Webhook Type', w.type, true)
+                    .addField('Webhook URL', w.url, true)
+                    .addField('Created By', w.client, true)
+                    .addField('Created Since', w.createdAt, true)
+                    msg.channel.send({embed: webhookEmbed});
+                })
+                .catch(() => {
+                    msg.channel.send('Encountered error while getting the said webhook.');
+                });
+            }
+        } break;
+
+        case('delete'): {
+            if(sel.length <= 0) return msg.channel.send('No webhook name specified. Please search for the webhook name first before proceeding.');
+            else {
+                msg.channel.fetchWebhooks()
+                .then(a => {
+                    let w = a.find(e => e.name == sel);
+                    if(!w) return msg.channel.send('Webhook doesn\'t exist.');
+                    w.delete()
+                    .then(() => {
+                        return msg.channel.send('Webhook deleted successfully.');
+                    })
+                    .catch(() => {
+                        return msg.channel.send('Encountered error while deleting the webhook.');
+                    });
+                })
+                .catch(() => {
+                    return msg.channel.send('Encountered error while searching for the webhook.')
+                })
+            }
+        } break;
+        
+        default: {
+            return msg.channel.send(`Unknown option ${opt}`);
+        }
+    }
+}
+
 module.exports = {
     name: 'webhook',
     alias: ['webhook', 'web', 'hook'],
@@ -28,80 +108,7 @@ module.exports = {
         if(!queue.get(`${msg.guild.id}.${msg.author.id}`)) queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
 
         if(args.length > 0) {
-            switch(args.shift()) {
-                case('create'): {
-                    if(args.length <= 0) return msg.channel.send('Webhook name not provided.');
-                    else {
-                        msg.channel.createWebhook(args.join(' '), msg.client.user.displayAvatarURL())
-                        .then(m => {
-                            msg.channel.send(`Webhook created: ${m.url}`)
-                        })
-                        .catch(() => {
-                            msg.channel.send('Encountered error while creating a webhook in this channel.');
-                        })
-                    }
-                } break;
-
-                case('find'): {
-                    if(args.length <= 0) {
-                        msg.channel.fetchWebhooks()
-                        .then(a => {
-                            let w = a.map(e => e.name);
-                            if(w.length <= 0) return msg.channel.send('This channel doesn\'t have any webhooks.');
-                            let webhookEmbed = new Discord.MessageEmbed()
-                            .setTitle('Webhooks in this channel')
-                            .setDescription(a.map(e => e.name).join('\n'));
-
-                            msg.channel.send({embed: webhookEmbed});
-                        })
-                        .catch(() => {
-                            msg.channel.send('Encountered error while searching for webhooks.');
-                        });
-                    } else {
-                        msg.guild.fetchWebhooks()
-                        .then(a => {
-                            let w = a.find(e => e.name == args.join(' '));
-                            if(!w) return msg.channel.send(`Webhook with the name **${args}** doesn't exist.`);
-                            let webhookEmbed = new Discord.MessageEmbed()
-                            .setTitle('Webhook Info')
-                            .setThumbnail(w.avatar)
-                            .addField('Webhook Name', w.name, true)
-                            .addField('Webhook Owner', w.owner, true)
-                            .addField('Webhook Type', w.type, true)
-                            .addField('Webhook URL', w.url, true)
-                            .addField('Created By', w.client, true)
-                            .addField('Created Since', w.createdAt, true)
-                            msg.channel.send({embed: webhookEmbed});
-                        })
-                        .catch(() => {
-                            msg.channel.send('Encountered error while getting the said webhook.');
-                        });
-                    }
-                } break;
-
-                case('delete'): {
-                    if(args.length <= 0) return msg.channel.send('No webhook name specified. Please search for the webhook name first before proceeding.');
-                    else {
-                        msg.channel.fetchWebhooks()
-                        .then(a => {
-                            let w = a.find(e => e.name == args.join(' '));
-                            if(!w) return msg.channel.send('Webhook doesn\'t exist.');
-                            w.delete()
-                            .then(() => {
-                                return msg.channel.send('Webhook deleted successfully.');
-                            })
-                            .catch(() => {
-                                return msg.channel.send('Encountered error while deleting the webhook.');
-                            });
-                        })
-                        .catch(() => {
-                            return msg.channel.send('Encountered error while searching for the webhook.')
-                        })
-                    }
-                } break;
-                
-                default:
-            }
+            switchero(msg, args.shift(), args.join(' '));
         } else {
             let data = queue.get(`${msg.guild.id}.${msg.author.id}`);
             let filter = m => {return data == m.author.id;}
@@ -111,87 +118,8 @@ module.exports = {
 
             CMD.on('collect', (cmd) => {
                 cmd = cmd.content.split(' ');
-                let com = cmd.shift();
-                com = com.toLowerCase();
-
-                switch(com) {
-                    case('create'): {
-                        if(cmd.length <= 0) return msg.channel.send('Webhook name not provided.');
-                        else {
-                            msg.channel.createWebhook(cmd.join(' '), msg.client.user.displayAvatarURL())
-                            .then(m => {
-                                msg.channel.send(`Webhook created: ${m.url}`)
-                            })
-                            .catch(() => {
-                                msg.channel.send('Encountered error while creating a webhook in this channel.');
-                            })
-                        }
-                    } break;
-
-                    case('find'): {
-                        if(cmd.length <= 0) {
-                            msg.channel.fetchWebhooks()
-                            .then(a => {
-                                let w = a.map(e => e.name);
-                                if(w.length <= 0) return msg.channel.send('This channel doesn\'t have any webhooks.');
-                                let webhookEmbed = new Discord.MessageEmbed()
-                                .setTitle('Webhooks in this channel')
-                                .setDescription(a.map(e => e.name).join('\n'));
-
-                                msg.channel.send({embed: webhookEmbed});
-                            })
-                            .catch(() => {
-                                msg.channel.send('Encountered error while searching for webhooks.');
-                            });
-                        } else {
-                            msg.guild.fetchWebhooks()
-                            .then(a => {
-                                let w = a.find(e => e.name == cmd.join(' '));
-                                if(!w) return msg.channel.send(`Webhook with the name **${cmd}** doesn't exist.`);
-                                let webhookEmbed = new Discord.MessageEmbed()
-                                .setTitle('Webhook Info')
-                                .setThumbnail(w.avatar)
-                                .addField('Webhook Name', w.name, true)
-                                .addField('Webhook Owner', w.owner, true)
-                                .addField('Webhook Type', w.type, true)
-                                .addField('Webhook URL', w.url, true)
-                                .addField('Created By', w.client.user.username, true)
-                                .addField('Created Since', w.createdAt, true)
-                                msg.channel.send({embed: webhookEmbed});
-                            })
-                            .catch(() => {
-                                msg.channel.send('Encountered error while getting the said webhook.');
-                            });
-                        }
-                    } break;
-
-                    case('delete'): {
-                        if(cmd.length <= 0) return msg.channel.send('No webhook name specified. Please search for the webhook name first before proceeding.');
-                        else {
-                            msg.channel.fetchWebhooks()
-                            .then(a => {
-                                let w = a.find(e => e.name == cmd.join(' '));
-                                if(!w) return msg.channel.send('Webhook doesn\'t exist.');
-                                w.delete()
-                                .then(() => {
-                                    return msg.channel.send('Webhook deleted successfully.');
-                                })
-                                .catch(() => {
-                                    return msg.channel.send('Encountered error while deleting the webhook.');
-                                });
-                            })
-                            .catch(() => {
-                                return msg.channel.send('Encountered error while searching for the webhook.')
-                            })
-                        }
-                    } break;
-
-                    case('exit'): {
-                        CMD.stop();
-                    } break;
-                    
-                    default:
-                }
+                if(cmd[0].toLowerCase() == 'exit') return CMD.stop();
+                switchero(msg, cmd.shift(), cmd.join(' '));
             });
             CMD.on('end', () => {
                 queue.delete(`${msg.guild.id}.${msg.author.id}`);
