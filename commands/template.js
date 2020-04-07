@@ -21,7 +21,7 @@ O.run = async (msg, args, queue) => {
     if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
 
     //command needed to be activated first
-    if(!svr.module.includes(O.name)) return msg.channel.send('This module is not activated. Please activate it via the `setup` command.');
+    if(!svr.modules.includes(O.name)) return msg.channel.send('This module is not activated. Please activate it via the `setup` command.');
 
     //code here
 }

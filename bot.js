@@ -147,7 +147,7 @@ bot.on('channelCreate', async chan => {
         .addField('Created Timestamp', chan.createdAt, true);
 
         let webhook = a.find(e => e.name.toLowerCase() == 'logging');
-        webhook.send(channelCreateEmbed);
+        if(webhook) webhook.send(channelCreateEmbed);
     })
     .catch(e => {
         if(e) throw e;
@@ -165,12 +165,12 @@ bot.on('channelDelete', async chan => {
         .addField('Created Timestamp', chan.createdAt, true);
 
         let webhook = a.find(e => e.name.toLowerCase() == 'logging');
-        webhook.send(channelDeleteEmbed);
+        if(webhook) webhook.send(channelDeleteEmbed);
     })
     .catch(e => {
         if(e) throw e;
     });
-})
+});
 
 bot.on('message', msg => {
     let cmd;
