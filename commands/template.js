@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json');
 
 O = new Object;
 
@@ -13,7 +13,7 @@ O.run = async (msg, args, queue) => {
     await msg.delete().catch(e => console.log(e));
 
     //dev only command
-    if(!dev.includes(msg.author.id)) return;
+    if(!master.developer.includes(msg.author.id)) return;
 
     //server specific command
     const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));

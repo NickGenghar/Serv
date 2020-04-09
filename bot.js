@@ -2,35 +2,46 @@ const Discord = require('discord.js');
 const fs = require('fs');
 
 const core = require('./configurations/core.json');
-const dev = require('./configurations/developer.json');
+const datastore = require('./configurations/datastore.json');
+const defaults = require('./configurations/defaults.json');
+const master = require('./configurations/master.json');
 const token = process.env.token || require('./configurations/token.json').token;
 
 const bot = new Discord.Client();
 
-process.on('unhandledRejection', e => {
+process.on('unhandledRejection', (e) => {
+    bot.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
+    .then(w => {
+        let rejectionEmbed = new Discord.MessageEmbed()
+        .setTitle('Unhandled Rejection')
+        .setDescription(e.toString());
+
+        const webhook = w.find(e => e.name.toLowerCase() == 'serv master log');
+        if(webhook) webhook.send(rejectionEmbed);
+    });
     console.log(e);
 });
 
 //Create directory tree for data storage at first launch from clone.
+//Also determine the status of each subfolders.
 fs.access('./data', (e) => {
     if(e) {
         console.log('\x1b[33m%s\x1b[0m','Directory doesn\'t exist. Creating...');
         fs.mkdir('./data', (e) => {
-            if(e) throw e;
-            fs.mkdir('./data/guilds', (e) => {
-                if(e) throw e;
-            });
-            fs.mkdir('./data/levels', (e) => {
-                if(e) throw e;
-            });
-            fs.mkdir('./data/playlist', (e) => {
-                if(e) throw e;
-            });
-            fs.mkdir('./data/users', (e) => {
-                if(e) throw e;
-            });
+            if(e) return console.log('\x1b[31m%s\x1b[0m\n%s','Encountered error while creating data stores.\nYou might not have the required permission to do so', e);
         });
     }
+
+    fs.readdir('./data', (e,f) => {
+        if(e) throw e;
+        f = f.filter(v => {return v.indexOf('.') < 0;});
+        datastore.forEach(d => {
+            fs.mkdir(`./data/${d}`, e => {
+                if(e) console.log('\x1b[36m%s\x1b[0m',`Directory [${d}] available.`);
+                else console.log('\x1b[33m%s\x1b[0m',`Directory [${d}] doesn\'t exist. Creating...`);
+            });
+        });
+    });
 });
 
 //Clear temp folder at startup
@@ -136,6 +147,49 @@ bot.once('ready', () => {
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
 });
 
+bot.on('guildCreate', guild => {
+    guild.client.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
+    .then(w => {
+        let guildCreateEmbed = new Discord.MessageEmbed()
+        .setTitle('Guild Created')
+        .setThumbnail(guild.iconURL())
+        .addField('Guild Name', guild.name, true)
+        .addField('Guild Owner', guild.owner.user.username, true)
+        .addField('Guild Created', guild.createdAt, true)
+        .addField('Guild Members', guild.memberCount, true);
+
+        const webhook = w.find(e => e.name.toLowerCase() == 'serv master log');
+        if(webhook) webhook.send(guildCreateEmbed);
+    })
+
+    fs.writeFile(`./data/guilds/${guild.id}.json`, defaults.server_config, (e) => {
+        if(e) console.log('Encountered error while creating new server data.');
+    });
+});
+
+bot.on('guildDelete', guild => {
+    guild.client.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
+    .then(w => {
+        let guildRemoveEmbed = new Discord.MessageEmbed()
+        .setTitle('Guild Deleted')
+        .setThumbnail(guild.iconURL())
+        .addField('Guild Name', guild.name, true)
+        .addField('Guild Owner', guild.owner.user.username, true)
+        .addField('Guild Created', guild.createdAt, true)
+        .addField('Guild Members', guild.memberCount, true)
+        .addField('Data Deletion Date', new Date(Date.now()+604800000));
+
+        const webhook = w.find(e => e.name.toLowerCase() == 'serv master log');
+        if(webhook) webhook.send(guildRemoveEmbed);
+    })
+
+    setTimeout(() => {
+        fs.unlink(`./data/guilds/${guild.id}.json`, (e) => {
+            if(e) console.log('Encountered error while deleting old server data.');
+        });
+    }, 604800000);
+})
+
 bot.on('channelCreate', async chan => {
     let guild = chan.client.guilds.cache.find(e => e.id.toString() == chan.toJSON().guild);
     guild.fetchWebhooks()
@@ -185,7 +239,7 @@ bot.on('message', msg => {
 });
 
 bot.on('message', async msg => {
-    if(dev.includes(msg.author.id) && msg.content.toLowerCase() == '///reload') {
+    if(master.developer.includes(msg.author.id) && msg.content.toLowerCase() == '///reload') {
         await msg.delete().catch(e => console.log(e));
         console.log(`\x1b[33m%s\x1b[0m`, 'Reloading Commands');
         reload();

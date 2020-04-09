@@ -32,7 +32,7 @@ O.run = async (msg, args, queue) => {
     if(!reactionEmoji) return msg.channel.send('Provided emoji is unusable or invalid. Please use a different emoji.');
 
     let verifyEmbed = new Discord.MessageEmbed()
-    .setTitle('Server Verification')
+    .setTitle('Reaction')
     .setDescription(args.splice(3).join(' '));
 
     verifyChannel.send(verifyEmbed)
@@ -40,9 +40,17 @@ O.run = async (msg, args, queue) => {
         m.react(reactionEmoji)
         .then(() => {
             msg.client.on('messageReactionAdd', (react, user) => {
+                if(react.partial) {
+                    try {await react.fetch();}
+                    catch(e) {return console.log(e);}
+                }
                 if(react.message == m) msg.guild.members.cache.find(i => i.id == user.id).roles.add(verifyRole).catch(e => {console.log(e)});
             });
             msg.client.on('messageReactionRemove', (react, user) => {
+                if(react.partial) {
+                    try {await react.fetch();}
+                    catch(e) {return console.log(e);}
+                }
                 if(react.message == m) msg.guild.members.cache.find(i => i.id == user.id).roles.remove(verifyRole).catch(e => {console.log(e)});
             })
         });

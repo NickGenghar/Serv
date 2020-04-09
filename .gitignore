@@ -4,5 +4,6 @@ temp/
 test/
 .vscode/
 commands/Developer/upgrade.js
+configurations/master.json
 configurations/token.json
 package-lock.json

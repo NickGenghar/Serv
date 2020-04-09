@@ -7,29 +7,35 @@ module.exports = {
     name: 'announce',
     alias: ['announce', 'annoy', 'broadcast', 'relay'],
     desc: 'Sends an announcement to a channel',
-    usage: '//announce <announcement>\nannouncement: Any text. Take note that this command handles the Everyone\'s ping.',
-    access: 'Moderator',
+    usage: [
+        '//announce <Channel> <Announcement>',
+        'Channel: The channel to do announcement',
+        'Announcement: The announcement text.',
+        '',
+        'This command handles the `@everyone` or `@here` ping accordingly.'
+    ],
     run: async (msg, args) => {
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
 
-        if(args[0]) {
-            let announcement = args.join(' ');
+        let channel = msg.mentions.channels.first() || msg.guild.channels.cache.get(args[0]);
+        if(!channel) return msg.channel.send('Announcement channel unspecified');
+        if(!args[1]) return msg.channel.send(`No announcement information supplied.`);
 
-            if (!msg.guild.me.hasPermission(['MENTION_EVERYONE'])) {
-                announcement = announcement.replace(/@everyone/, 'everyone');
-            }
+        let announcement = args.splice(0).join(' ');
 
-            let announceEmbed = new Discord.MessageEmbed()
-                .setTitle('Public Server Announcement')
-                .setDescription(`By: ${msg.author.username}`)
-                .setColor(color.blue)
-                .setThumbnail(msg.author.displayAvatarURL({size:2048}))
-                .addField('Announcement:', `${announcement}`, true);
-            return msg.channel.send({ embed: announceEmbed });
-        } else {
-            msg.channel.send(`No announcement information supplied.`);
+        if (!msg.guild.me.hasPermission(['MENTION_EVERYONE'])) {
+            announcement = announcement.replace(/@everyone/g, 'everyone');
+            announcement = announcement.replace(/@here/g, 'here');
         }
+
+        let announceEmbed = new Discord.MessageEmbed()
+            .setTitle('Public Server Announcement')
+            .setDescription(`By: ${msg.author.username}`)
+            .setColor(color.blue)
+            .setThumbnail(msg.author.displayAvatarURL({size:2048}))
+            .addField('Announcement:', `${announcement}`, true);
+        channel.send({ embed: announceEmbed });
     }
 }
