@@ -265,16 +265,12 @@ bot.on('channelPinsUpdate', async (chan, time) => {
 bot.on('emojiCreate', async emoji => {
     let guild = bot.guilds.cache.find(e => e.id == emoji.guild.id);
     guild.fetchWebhooks()
-    .then(async a => {
-        let author;
-        try {author = await emoji.fetchAuthor();}
-        catch(e) {author = 'Error retrieving user';}
-
+    .then(a => {
         let emojiCreateEmbed = new Discord.MessageEmbed()
         .setTitle('Emoji Update')
         .setThumbnail(emoji.url)
         .addField('Emoji Name', emoji.name, true)
-        .addField('Emoji Author', author.username, true)
+        .addField('Emoji Author', await emoji.fetchAuthor().username, true)
         .addField('Emoji Animated', emoji.animated, true)
         .addField('Emoji Creation Date', emoji.createdAt, true);
 
@@ -289,16 +285,14 @@ bot.on('emojiCreate', async emoji => {
 bot.on('emojiDelete', async emoji => {
     let guild = bot.guilds.cache.find(e => e.id == emoji.guild.id);
     guild.fetchWebhooks()
-    .then(async a => {
-        let author;
-        try {author = await emoji.fetchAuthor();}
-        catch(e) {author = 'Error retrieving user';}
-
+    .then(a => {
+        let author = await emoji.fetchAuthor();
+        
         let emojiDeleteEmbed = new Discord.MessageEmbed()
         .setTitle('Emoji Update')
         .setThumbnail(emoji.url)
         .addField('Emoji Name', emoji.name, true)
-        .addField('Emoji Author', author.username, true)
+        .addField('Emoji Author', await emoji.fetchAuthor().username, true)
         .addField('Emoji Animated', emoji.animated, true)
         .addField('Emoji Creation Date', emoji.createdAt, true);
 
