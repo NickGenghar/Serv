@@ -5,7 +5,7 @@ const defaults = require('./configurations/defaults.json');
 const master = require('./configurations/master.json');
 const token = process.env.token || require('./configurations/token.json').token;
 
-const bot = new Discord.Client();
+const bot = new Discord.Client({partials: ['MESSAGE', 'REACTION', 'CHANNEL', 'USER', 'GUILD_MEMBER']});
 
 process.on('unhandledRejection', (e) => {
     bot.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
