@@ -2,19 +2,8 @@ const Discord = require('discord.js');
 const Twit = require('twit');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
-
-var key;
-try {
-    key = require('../../configurations/token.json').twkey;
-} catch(e) {
-    key = {
-        consumer: process.env.consumer,
-        consumer_secret: process.env.consumer_secret,
-        access_token: process.env.access_token,
-        access_token_secret: process.env.access_token_secret
-    }
-}
+const master = require.main.require('./configurations/master.json').developer;
+const key = require.main.require('./configurations/token.json').twkey;
 
 var twitterClient = new Twit({
     consumer_key: key.consumer,
@@ -46,7 +35,7 @@ module.exports = {
         'Tweet and Tweet content: Only for Nick Genghar, not much else to tell you..'
     ],
     run: async (msg, args, queue) => {
-        if(dev.includes(msg.author.id) && args[0] == 'tweet') {
+        if(master.includes(msg.author.id) && args[0] == 'tweet') {
             args.shift();
             twitterClient.post('statuses/update', {status: args.join(' ')}, (e, t, r) => {
                 if(e) return console.log(e);

@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const color = require.main.require('./configurations/color.json');
 
 O = new Object;
 
@@ -33,25 +33,26 @@ O.run = async (msg, args, queue) => {
 
     let verifyEmbed = new Discord.MessageEmbed()
     .setTitle('Reaction')
+    .setColor(color.white)
     .setDescription(args.splice(3).join(' '));
 
     verifyChannel.send(verifyEmbed)
     .then(m => {
         m.react(reactionEmoji)
         .then(() => {
-            msg.client.on('messageReactionAdd', (react, user) => {
+            msg.client.on('messageReactionAdd', async (react, user) => {
                 if(react.partial) {
                     try {await react.fetch();}
                     catch(e) {return console.log(e);}
                 }
-                if(react.message == m) msg.guild.members.cache.find(i => i.id == user.id).roles.add(verifyRole).catch(e => {console.log(e)});
+                if(react.message == m && !user.bot) msg.guild.members.cache.find(i => i.id == user.id).roles.add(verifyRole).catch(e => {console.log(e)});
             });
-            msg.client.on('messageReactionRemove', (react, user) => {
+            msg.client.on('messageReactionRemove', async (react, user) => {
                 if(react.partial) {
                     try {await react.fetch();}
                     catch(e) {return console.log(e);}
                 }
-                if(react.message == m) msg.guild.members.cache.find(i => i.id == user.id).roles.remove(verifyRole).catch(e => {console.log(e)});
+                if(react.message == m && !user.bot) msg.guild.members.cache.find(i => i.id == user.id).roles.remove(verifyRole).catch(e => {console.log(e)});
             })
         });
     })

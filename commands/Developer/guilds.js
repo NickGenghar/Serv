@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
-const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json').developer;
 
 module.exports = {
     name: 'guilds',
@@ -10,7 +9,7 @@ module.exports = {
     usage: ['//guilds'],
     access: 'Developer',
     run: async (msg, args) => {
-        if(!dev.includes(msg.author.id)) return;
+        if(!master.includes(msg.author.id)) return;
 
         let guilds = msg.client.guilds.cache.array();
         let guildEmbed = new Discord.MessageEmbed()

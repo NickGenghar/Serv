@@ -1,8 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
-
 let switchero = (msg, opt, sel) => {
     opt = opt.toLowerCase();
     switch(opt) {

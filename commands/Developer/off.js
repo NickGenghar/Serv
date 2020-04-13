@@ -1,7 +1,7 @@
-const Discord = require('discord.js');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json').developer;
+
 let clear = () => {
     fs.readdir('./temp', (e, f) => {
         let files = f.filter(e => {if(e.indexOf('.') > -1) return e});
@@ -21,7 +21,7 @@ module.exports = {
         '//off'
     ],
     run: async (msg, args) => {
-        if(!dev.includes(msg.author.id)) return;
+        if(!master.includes(msg.author.id)) return;
         clear();
         await msg.delete().catch(e => console.log(e));
         console.log(`\x1b[34m%s\x1b[0m`, 'Shutting down bot...');

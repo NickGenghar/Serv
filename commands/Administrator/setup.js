@@ -1,9 +1,9 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const core = require('../../configurations/core.json');
+const prefix = require.main.require('./configurations/defaults.json').prefix;
 
-var serverConfig = require('../../configurations/defaults.json').server_config;
+var serverConfig = require.main.require('./configurations/defaults.json').server_config;
 
 module.exports = {
     name: 'setup',
@@ -209,7 +209,7 @@ module.exports = {
                         } break;
 
                         case('prefix'): {
-                            svr.prefix = core.prefix;
+                            svr.prefix = prefix;
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send('Prefix has been reset to the default prefix: **[//]**');
                         } break;

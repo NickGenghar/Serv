@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const archiver = require('archiver');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json').developer;
 
 let compress = (msg, args) => {
     let output = fs.createWriteStream(`./data/${args[1]}.zip`);
@@ -44,7 +44,7 @@ module.exports = {
         'File Name: The name of the zipped file.'
     ],
     run: async (msg, args) => {
-        if(!dev.includes(msg.author.id)) return;
+        if(!master.includes(msg.author.id)) return;
         if(args.length < 2) return msg.client.commands.find(v => v.name == 'help').run(msg, ['export']);
         msg.delete().catch(e => console.log(e));
 

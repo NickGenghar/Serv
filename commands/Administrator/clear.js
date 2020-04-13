@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json').developer;
 
 module.exports = {
     name: 'clear',
@@ -18,7 +18,7 @@ module.exports = {
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
 
         await msg.delete().catch(e => console.log(e));
-        if(dev.includes(msg.author.id))
+        if(master.includes(msg.author.id))
         if(args[0] == 'c')
         return console.clear();
 

@@ -1,15 +1,15 @@
 const Discord = require('discord.js');
 const os = require('os');
-const fs = require('fs');
 
-const color = require('../../configurations/color.json');
-const dev = require('../../configurations/developer.json');
+const color = require.main.require('./configurations/color.json');
 
 module.exports = {
     name: 'stat',
     alias: ['stat', 'st'],
     desc: 'Get\'s the bot\'s hosting server statistics.',
-    usage: ['stats'],
+    usage: [
+        '//stat'
+    ],
     run: async (msg, args) => {
         let cpu;
 		try {

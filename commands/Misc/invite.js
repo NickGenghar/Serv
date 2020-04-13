@@ -1,7 +1,5 @@
 const Discord = require('discord.js');
 
-const dev = require('../../configurations/developer.json');
-
 module.exports = {
     name: 'invite',
     alias: ['invite', 'i'],

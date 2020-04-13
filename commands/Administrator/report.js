@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const color = require('../../configurations/color.json');
+const color = require.main.require('./configurations/color.json');
 
 module.exports = {
 	name: 'report',
@@ -24,12 +24,10 @@ module.exports = {
             .setDescription('Report ticket')
             .setColor(color.yellow)
             .addField('Reported user', `${reportUser}`, true)
-            .addField('User ID:', `${reportUser.id}`, true)
-            .addField('Reported by', `${msg.author}`, true)
-            .addField('User ID:', `${msg.author.id}`, true)
             .addField('Channel', `${msg.channel}`, true)
             .addField('Time', `${msg.createdAt}`, true)
-            .addField('Reason', reason, true);
+            .addField('Reason', reason, true)
+            .addField('Reported by', `${msg.author}`, true);
 
         let reportChannel = msg.guild.channels.cache.find(c => c.id == svr.logChan);
         if (!reportChannel) {

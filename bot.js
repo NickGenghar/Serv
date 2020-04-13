@@ -1,8 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const core = require('./configurations/core.json');
-const datastore = require('./configurations/datastore.json');
 const defaults = require('./configurations/defaults.json');
 const master = require('./configurations/master.json');
 const token = process.env.token || require('./configurations/token.json').token;
@@ -35,7 +33,7 @@ fs.access('./data', (e) => {
     fs.readdir('./data', (e,f) => {
         if(e) throw e;
         f = f.filter(v => {return v.indexOf('.') < 0;});
-        datastore.forEach(d => {
+        defaults.datastore.forEach(d => {
             fs.mkdir(`./data/${d}`, e => {
                 if(e) console.log('\x1b[36m%s\x1b[0m',`Directory [${d}] available.`);
                 else console.log('\x1b[33m%s\x1b[0m',`Directory [${d}] doesn\'t exist. Creating...`);
@@ -156,7 +154,8 @@ bot.on('guildCreate', guild => {
         .addField('Guild Name', guild.name, true)
         .addField('Guild Owner', guild.owner.user.username, true)
         .addField('Guild Created', guild.createdAt, true)
-        .addField('Guild Members', guild.memberCount, true);
+        .addField('Guild Members', guild.memberCount, true)
+        .addField('Data Creation Date', new Date(), true);
 
         const webhook = w.find(e => e.name.toLowerCase() == 'serv master log');
         if(webhook) webhook.send(guildCreateEmbed);
@@ -188,7 +187,7 @@ bot.on('guildDelete', guild => {
             if(e) console.log('Encountered error while deleting old server data.');
         });
     }, 604800000);
-})
+});
 
 bot.on('channelCreate', async chan => {
     let guild = chan.client.guilds.cache.find(e => e.id.toString() == chan.toJSON().guild);
@@ -200,7 +199,7 @@ bot.on('channelCreate', async chan => {
         .addField('Channel Type', chan.type, true)
         .addField('Created Timestamp', chan.createdAt, true);
 
-        let webhook = a.find(e => e.name.toLowerCase() == 'logging');
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
         if(webhook) webhook.send(channelCreateEmbed);
     })
     .catch(e => {
@@ -218,11 +217,147 @@ bot.on('channelDelete', async chan => {
         .addField('Channel Type', chan.type, true)
         .addField('Created Timestamp', chan.createdAt, true);
 
-        let webhook = a.find(e => e.name.toLowerCase() == 'logging');
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
         if(webhook) webhook.send(channelDeleteEmbed);
     })
     .catch(e => {
         if(e) throw e;
+    });
+});
+
+bot.on('channelUpdate', async (oldChan, newChan) => {
+    let guild = bot.guilds.cache.find(e => e.id.toString() == newChan.toJSON().guild);
+    guild.fetchWebhooks()
+    .then(a => {
+        let channelUpdateEmbed = new Discord.MessageEmbed()
+        .setTitle('Channel Update')
+        .addField('Old Channel', oldChan.name)
+        .addField('New Channel', newChan.toString());
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook) webhook.send(channelUpdateEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
+});
+
+bot.on('channelPinsUpdate', async (chan, time) => {
+    let guild = bot.guilds.cache.find(e => e.id.toString() == chan.toJSON().guild);
+    guild.fetchWebhooks()
+    .then(a => {
+        let channelPinsUpdateEmbed = new Discord.MessageEmbed()
+        .setTitle('Channel Pins Update')
+        .addField('Channel Name', chan.toJSON().name, true)
+        .addField('Channel Type', chan.type, true)
+        .addField('Pin Update Timestamp', chan.lastPinAt, true);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook) webhook.send(channelPinsUpdateEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
+});
+
+bot.on('emojiCreate', async emoji => {
+    let guild = bot.guilds.cache.find(e => e.id == emoji.guild.id);
+    guild.fetchWebhooks()
+    .then(async a => {
+        let author;
+        try {author = await emoji.fetchAuthor();}
+        catch(e) {author = 'Error retrieving user';}
+
+        let emojiCreateEmbed = new Discord.MessageEmbed()
+        .setTitle('Emoji Update')
+        .setThumbnail(emoji.url)
+        .addField('Emoji Name', emoji.name, true)
+        .addField('Emoji Author', author.username, true)
+        .addField('Emoji Animated', emoji.animated, true)
+        .addField('Emoji Creation Date', emoji.createdAt, true);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook) webhook.send(emojiCreateEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
+});
+
+bot.on('emojiDelete', async emoji => {
+    let guild = bot.guilds.cache.find(e => e.id == emoji.guild.id);
+    guild.fetchWebhooks()
+    .then(async a => {
+        let author;
+        try {author = await emoji.fetchAuthor();}
+        catch(e) {author = 'Error retrieving user';}
+
+        let emojiDeleteEmbed = new Discord.MessageEmbed()
+        .setTitle('Emoji Update')
+        .setThumbnail(emoji.url)
+        .addField('Emoji Name', emoji.name, true)
+        .addField('Emoji Author', author.username, true)
+        .addField('Emoji Animated', emoji.animated, true)
+        .addField('Emoji Creation Date', emoji.createdAt, true);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook) webhook.send(emojiDeleteEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
+});
+
+bot.on('emojiUpdate', async (oldEmoji, newEmoji) => {
+    let guild = bot.guilds.cache.find(e => e.id = newEmoji.guild.id);
+    guild.fetchWebhooks()
+    .then(a => {
+        let emojiUpdateEmbed = new Discord.MessageEmbed()
+        .setTitle('Emoji Update')
+        .addField('Old Emoji', oldEmoji.toString(), true)
+        .addField('Old Emoji Name', oldEmoji.name, true)
+        .addField('New Emoji', newEmoji.toString(), true)
+        .addField('New Emoji Name', newEmoji.name, true);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook) webhook.send(emojiUpdateEmbed);
+    })
+    .catch(e => {
+        if(e) throw e;
+    });
+});
+
+bot.on('guildMemberAdd', async member => {
+    let guild = bot.guilds.cache.find(e => e.id == member.guild.id);
+    guild.fetchWebhooks()
+    .then(a => {
+        let guildMemberAddEmbed = new Discord.MessageEmbed()
+        .setTitle('Member Join')
+        .setThumbnail(member.user.displayAvatarURL())
+        .addField('Name', member.user.username, true)
+        .addField('Bot?', member.user.bot ? 'Yes' : 'No', true)
+        .addField('Location', member.user.locale, true)
+        .addField('Joined Since', member.joinedAt, true);
+        
+        let webhook = a.find(e => e.name.toLowerCase() = 'serv log');
+        if(webhook) webhook.send(guildMemberAddEmbed);
+    });
+});
+
+bot.on('guildMemberRemove', async member => {
+    let guild = bot.guilds.cache.find(e => e.id == member.guild.id);
+    guild.fetchWebhooks()
+    .then(a => {
+        let guildMemberRemoveEmbed = new Discord.MessageEmbed()
+        .setTitle('Member Left')
+        .setThumbnail(member.user.displayAvatarURL())
+        .addField('Name', member.user.username, true)
+        .addField('Bot?', member.user.bot ? 'Yes' : 'No', true)
+        .addField('Location', member.user.locale, true)
+        .addField('Joined Since', member.joinedAt, true);
+        
+        let webhook = a.find(e => e.name.toLowerCase() = 'serv log');
+        if(webhook) webhook.send(guildMemberRemoveEmbed);
     });
 });
 
@@ -254,4 +389,47 @@ bot.on('message', async msg => {
     } catch(e) {
         if(e) throw e;
     }
+});
+
+bot.on('messageDelete', async msg => {
+    let guild = bot.guilds.cache.find(e => e.id == msg.guild.id);
+    guild.fetchWebhooks()
+    .then(a => {
+        let messageDeleteEmbed = new Discord.MessageEmbed()
+        .setTitle('Message Delete')
+        .addField('Message Author', msg.author, true)
+        .addField('Message Content', msg.content, true);
+
+        let attachments = msg.attachments.array();
+        if(attachments.length > 0) {
+            attachments = attachments.map(e => e.url);
+            messageDeleteEmbed.addField('Message Attachments', attachments, true);
+        }
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook && !msg.author.bot) webhook.send(messageDeleteEmbed);
+    });
+});
+
+bot.on('messageDeleteBulk', async msgs => {
+    let guild = bot.guilds.cache.find(e => e.id == msgs.array()[0].guild.id);
+    guild.fetchWebhooks()
+    .then(a => {
+        msgs = msgs.array();
+        let newMsgs = [];
+        for(let i = 0; i < msgs.length; i++) {
+            newMsgs.push({
+                author: msgs[i].author.tag,
+                content: msgs[i].content
+            });
+        }
+        fs.writeFileSync(`./temp/${msgs[0].guild.id}.json`, JSON.stringify(newMsgs));
+        const attachment = new Discord.MessageAttachment(`./temp/${msgs[0].guild.id}.json`);
+        let messageDeleteBulkEmbed = new Discord.MessageEmbed()
+        .setTitle('Message Delete Bulk')
+        .attachFiles(attachment);
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook) webhook.send(messageDeleteBulkEmbed);
+    });
 });

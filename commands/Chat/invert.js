@@ -1,7 +1,4 @@
-const Discord = require('discord.js');
 const fs = require('fs');
-
-const dev = require('../../configurations/developer.json');
 
 O = new Object;
 

@@ -1,7 +1,6 @@
-const Discord = require('discord.js');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json').developer;
 
 module.exports = {
     name: 'uninstall',
@@ -14,7 +13,7 @@ module.exports = {
         'Careful using this command as it can uninstall any command modules, including this one!'
     ],
     run: async (msg, args) => {
-        if(!dev.includes(msg.author.id)) return;
+        if(!master.includes(msg.author.id)) return;
         let pathLike = args[0].split('/');
         let fileName = pathLike.pop();
         let subFolder = pathLike.pop();

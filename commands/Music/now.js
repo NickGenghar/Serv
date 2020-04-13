@@ -1,5 +1,4 @@
 const Discord = require('discord.js');
-const fs = require('fs');
 
 const color = require('../../configurations/color.json');
 

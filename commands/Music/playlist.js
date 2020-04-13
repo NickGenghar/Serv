@@ -1,11 +1,10 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-
 const ytdl = require('ytdl-core');
 const YT = require('simple-youtube-api');
 
-const key = process.env.ytkey || require('../../configurations/token.json').ytkey;
-const color = require('../../configurations/color.json');
+const color = require.main.require('./configurations/color.json');
+const key = require.main.require('./configurations/token.json').ytkey;
 
 const youtube = new YT(key);
 

@@ -3,8 +3,9 @@ const fs = require('fs');
 const ytdl = require('ytdl-core');
 const YT = require('simple-youtube-api');
 
-const color = require('../../configurations/color.json');
-const key = process.env.ytkey || require('../../configurations/token.json').ytkey;
+const color = require.main.require('./configurations/color.json');
+const key = require.main.require('./configurations/token.json').ytkey;
+
 const youtube = new YT(key);
 
 let play = (msg, song, queue) => {
@@ -89,6 +90,7 @@ module.exports = {
         'Playlist: Playlist created by the use of //playlist command.'
     ],
     run: async (msg, args, queue) => {
+        const prefix = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`)).prefix;
         let pl;
         let init = [{
             name: '',
@@ -148,7 +150,7 @@ module.exports = {
             }
             return vHandler(msg, streamData, queue);
         } else {
-            if(args[0]!='//playlist') {
+            if(args[0]!=`${prefix}playlist`) {
                 msg.channel.send('Searching...');
                 try{
                     var video = await youtube.getVideo(ST);
@@ -179,7 +181,7 @@ module.exports = {
                 }
 
                 return vHandler(msg, streamData, queue);
-            } else if(args[0]=='//playlist' && plName) {
+            } else if(args[0]==`${prefix}playlist` && plName) {
                 msg.channel.send('Importing playlist...');
                 for(let i = 0; i < plLinks.length; i++) {
                     let video = await ytdl.getInfo(plLinks[i]);

@@ -1,4 +1,5 @@
 {
+    "prefix": "//",
     "server_config": {
         "prefix": "//",
         "modules": ["setup","help"],
@@ -7,10 +8,40 @@
         "logChan": "",
         "loggedChan": [],
         "noInvite": true,
+        "noInviteBot": true,
+        "reactMsg": "",
+        "reactRole": "",
+        "reactEmoji": "",
         "tweetChan": "",
         "lvlmul": 1,
         "lvlincrementmax": 5,
         "lvlincrementmin": 0,
         "lvlbuf": 60000
-    }
+    },
+    "datastore": [
+        "custom",
+        "guilds",
+        "levels",
+        "playlist",
+        "users"
+    ],
+    "replyPool": [
+        "Here's your item as requested.",
+        "I could help you with that.",
+        "Might be hard to come by. Just hold on.",
+        "Perhaps I can get you a better one.",
+        "I don\"t think I can deliver your request.",
+        "Why not having a cancer?",
+        "No, no I don\"t think I will...",
+        "This? Pfft...",
+        "I would do it, but with a price",
+        "Yes?",
+        "Yes.",
+        "Perhaps...",
+        "Even FBI says no...",
+        "That\"s a tough one.",
+        "Oh really? I never would have though so.",
+        "Instructions unclear. Is it \"Destroy Humanity\"?",
+        "Please ask Nick Genghar for that question. I am not sentient to understant your request."
+    ]
 }

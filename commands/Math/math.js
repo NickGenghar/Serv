@@ -6,12 +6,11 @@ module.exports = {
         '//math <Operant>',
         '//math <Operant with X> <Value of X>',
         '',
-        'Operant: Simple arithmetic calculations (1+1, 2*2, 3-3, 4/4)',
+        'Operant: Simple arithmetic calculations (1+1, 2\*2, 3-3, 4/4)',
         '',
-        'Operant with X: Simple arithmetic calculations with X as a variable (1+x, 2*x, 3-x, 4/x)',
+        'Operant with X: Simple arithmetic calculations with X as a variable (1+x, 2\*x, 3-x, 4/x)',
         'Value of X: The value of x to be substitute.'
     ],
-    accessibleby: 'Members',
     run: async (msg, args) => {
         var compute = (iterator, iteration) => {
             if (iteration.includes('x') && iterator != NaN) {

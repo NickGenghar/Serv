@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
-const fs = require('fs');
 
-const color = require('../../configurations/color.json');
+const color = require.main.require('./configurations/color.json');
 
 module.exports = {
     name: 'queue',

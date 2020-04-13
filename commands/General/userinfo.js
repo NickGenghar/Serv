@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 
-const color = require('../../configurations/color.json');
+const color = require.main.require('./configurations/color.json');
 
 module.exports = {
     name: 'userinfo',
@@ -8,7 +8,7 @@ module.exports = {
     desc: 'Get\'s the information of the given user or yourself.',
     usage: [
         '//userinfo [Username]',
-        'Username: Target user.'
+        'Username: Target user. If unspecified, the command gets your user data instead.'
     ],
     run: async (msg, args) => {
         let User = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
@@ -26,7 +26,8 @@ module.exports = {
             .addField('Client ID', User.id, true)
             .addField('Client Status', User.presence.status, true)
             .addField('Joined Server since', msg.member.joinedAt, true)
-            .addField('Joined Discord since', User.createdAt, true);
+            .addField('Joined Discord since', User.createdAt, true)
+            .addField('Boosted Since', User.premiumSince, true);
 
         msg.channel.send({embed: userinfoEmbed});
     }

@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const request = require('request');
 const fs = require('fs');
 
-const dev = require('../../configurations/developer.json');
+const master = require.main.require('./configurations/master.json').developer;
 
 module.exports = {
     name: 'install',
@@ -15,7 +15,7 @@ module.exports = {
         'Note: Please attach a .js file in order for this command to work'
     ],
     run: async (msg, args) => {
-        if(!dev.includes(msg.author.id)) return;
+        if(!master.includes(msg.author.id)) return;
 
         let pathName = args[0].toString().split('/');
         let fileName = pathName.pop();
