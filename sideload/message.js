@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const core = require('../configurations/core.json');
+const pref = require.main.require('./configurations/defaults.json').prefix;
 
 const queue = new Map();
 
@@ -17,7 +17,7 @@ module.exports = {
             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(serverConfig));
             svr = serverConfig;
         }
-        let prefix = svr.prefix || core.prefix;
+        let prefix = svr.prefix || pref;
 
         if(svr.noInvite && msg.content.match(/(.*)discord.gg(.*)/)) {
             msg.delete().catch(e => (console.log(e)));
