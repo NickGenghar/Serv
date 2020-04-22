@@ -9,9 +9,14 @@
         "loggedChan": [],
         "noInvite": true,
         "noInviteBot": true,
-        "reactMsg": "",
-        "reactRole": "",
-        "reactEmoji": "",
+        "reactions": [
+            {
+                "chan": "",
+                "msg": "",
+                "role": "",
+                "emoji": ""
+            }
+        ],
         "tweetChan": "",
         "lvlmul": 1,
         "lvlincrementmax": 5,

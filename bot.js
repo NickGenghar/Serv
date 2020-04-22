@@ -3,9 +3,9 @@ const fs = require('fs');
 
 const defaults = require('./configurations/defaults.json');
 const master = require('./configurations/master.json');
-const token = process.env.token || require('./configurations/token.json').token;
+const token = require('./configurations/token.json').token;
 
-const bot = new Discord.Client({partials: ['MESSAGE', 'REACTION', 'CHANNEL', 'USER', 'GUILD_MEMBER']});
+const bot = new Discord.Client();
 
 process.on('unhandledRejection', (e) => {
     bot.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
@@ -55,7 +55,7 @@ let clear = () => {
                 let files = f.filter(e => {if(e.indexOf('.') > -1) return e});
                 files.forEach(g => {
                     fs.unlink(`./temp/${g}`, e => {
-                        if(e) return console.log(e);
+                        if(e) throw e;
                     });
                 });
             });
@@ -63,13 +63,30 @@ let clear = () => {
     });
 }
 
+let checksum = () => {
+    const guilds = bot.guilds.cache.array().map(i => i.id);
+    const available = fs.readdirSync('./data/guilds');
+    guilds.forEach(a => {
+        if(!available.includes(`${a}.json`)) {
+            console.log('\x1b[36m%s\x1b[0m',`Creating default server data for the server [${a}]`);
+            fs.writeFile(`./data/guilds/${a}.json`, JSON.stringify(defaults.server_config), (e) => {if(e) throw e;});
+        } else {
+            console.log('\x1b[36m%s\x1b[0m',`Server data for the server [${a}] available`);
+        }
+    })
+}
+
 let reload = () => {
+    if(typeof bot.timeout === 'object') bot.timeout.forEach(a => {bot.clearTimeout(a);});
+    if(typeof bot.immediate === 'object') bot.immediate.forEach(a => {bot.clearImmediate(a);});
+    if(typeof bot.interval === 'object') bot.interval.forEach(a => {bot.clearInterval(a);});
+    bot.timeout = new Object;
+    bot.immediate = new Object;
+    bot.interval = new Object;
+
     bot.commands = new Discord.Collection();
     bot.sideload = new Discord.Collection();
 
-    let indexSuccess = 0;
-    let indexSkipped = 0;
-    let indexFailed = 0;
     const sideloads = fs.readdirSync('./sideload').filter(file => {if(file.indexOf('.js') > -1) return file;});
     if(sideloads.length <= 0) {
         console.error('\x1b[31m%s\x1b[0m','Required directory is empty! Cannot proceed without any command modules installed. Exiting...');
@@ -82,6 +99,7 @@ let reload = () => {
         });
     }
 
+    let componentIssue = [];
     let commandFolder = fs.readdirSync('./commands').filter(folder => {if(folder.indexOf('.') < 0) return folder});
     if(commandFolder.length <= 0) {
         console.error('\x1b[31m%s\x1b[0m','Command modules are empty! Cannot proceed if no commands are present. Exiting...');
@@ -98,7 +116,7 @@ let reload = () => {
                     try {
                         delete require.cache[require.resolve(`./commands/${subFolder}/${files}`)];
                         let pull = require(`./commands/${subFolder}/${files}`);
-                        if(pull.name != '') {
+                        if(pull.name != '' && pull.alias.length >= 1 && typeof pull.run === 'function') {
                             command[index] = {
                                 name: pull.name,
                                 alias: pull.alias,
@@ -108,14 +126,13 @@ let reload = () => {
                                 type: subFolder
                             }
                             bot.commands.set(command[index].name, command[index++]);
-                            indexSuccess += 1;
                             console.log('\x1b[36m%s\x1b[0m',`Loaded command [${pull.name}] from "./commands/${subFolder}/${files}"`);
                         } else {
-                            indexSkipped += 1;
+                            componentIssue.push(files);
                             console.log('\x1b[33m%s\x1b[0m',`Command module [${files}] has incomplete parameters. Ignoring...`);
                         }
                     } catch(e) {
-                        indexFailed += 1;
+                        componentIssue.push(files);
                         console.error('\x1b[31m%s\x1b[0m',e);
                     }
                 })
@@ -123,11 +140,9 @@ let reload = () => {
         })
     }
 
-    if(indexFailed > 0)
-    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules failed to load. Check the logs to see what module failed to load.');
-    if(indexSkipped > 0)
-    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules are skipped. Check the logs to see what module skipped from loading.');
-    return [indexSuccess, indexSkipped, indexFailed];
+    if(componentIssue.length > 0)
+    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules returns an issue flag. Check the logs to see what module causing it.');
+    return componentIssue;
 }
 
 reload();
@@ -141,6 +156,7 @@ if(bot.commands.length <= 0) {
 bot.login(token);
 
 bot.once('ready', () => {
+    checksum();
     console.log('\x1b[32m%s\x1b[0m','Serv Ready.');
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
 });
@@ -161,9 +177,13 @@ bot.on('guildCreate', guild => {
         if(webhook) webhook.send(guildCreateEmbed);
     })
 
-    fs.writeFile(`./data/guilds/${guild.id}.json`, defaults.server_config, (e) => {
-        if(e) console.log('Encountered error while creating new server data.');
-    });
+    if(bot.timeout[guild.id]) {
+        bot.clearTimeout(bot.timeout[guild.id]);
+    } else {
+        fs.writeFile(`./data/guilds/${guild.id}.json`, defaults.server_config, (e) => {
+            if(e) console.log('Encountered error while creating new server data.');
+        });
+    }
 });
 
 bot.on('guildDelete', guild => {
@@ -182,7 +202,7 @@ bot.on('guildDelete', guild => {
         if(webhook) webhook.send(guildRemoveEmbed);
     })
 
-    setTimeout(() => {
+    bot.timeout[guild.id] = bot.setTimeout(() => {
         fs.unlink(`./data/guilds/${guild.id}.json`, (e) => {
             if(e) console.log('Encountered error while deleting old server data.');
         });
@@ -338,8 +358,8 @@ bot.on('guildMemberAdd', async member => {
         .addField('Bot?', member.user.bot ? 'Yes' : 'No', true)
         .addField('Location', member.user.locale, true)
         .addField('Joined Since', member.joinedAt, true);
-        
-        let webhook = a.find(e => e.name.toLowerCase() = 'serv log');
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
         if(webhook) webhook.send(guildMemberAddEmbed);
     });
 });
@@ -355,8 +375,8 @@ bot.on('guildMemberRemove', async member => {
         .addField('Bot?', member.user.bot ? 'Yes' : 'No', true)
         .addField('Location', member.user.locale, true)
         .addField('Joined Since', member.joinedAt, true);
-        
-        let webhook = a.find(e => e.name.toLowerCase() = 'serv log');
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
         if(webhook) webhook.send(guildMemberRemoveEmbed);
     });
 });
@@ -398,7 +418,7 @@ bot.on('messageDelete', async msg => {
         let messageDeleteEmbed = new Discord.MessageEmbed()
         .setTitle('Message Delete')
         .addField('Message Author', msg.author, true)
-        .addField('Message Content', msg.content, true);
+        .addField('Message Content', msg.content ? msg.content : '`Message embed`', true);
 
         let attachments = msg.attachments.array();
         if(attachments.length > 0) {
@@ -431,5 +451,32 @@ bot.on('messageDeleteBulk', async msgs => {
 
         let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
         if(webhook) webhook.send(messageDeleteBulkEmbed);
+    });
+});
+
+bot.on('messageUpdate', (msg1, msg2) => {
+    let guild = bot.guilds.cache.find(e => e.id == msg2.guild.id);
+    guild.fetchWebhooks()
+    .then(a => {
+        let messageDeleteEmbed = new Discord.MessageEmbed()
+        .setTitle('Message Update')
+        .addField('Message Author', msg2.author, true)
+        .addField('Old Message Content', msg1.content ? msg1.content : '`Message embed`', true)
+        .addField('New Message Content', msg2.content ? msg2.content : '`Message embed`', true);
+
+        let attachments1 = msg1.attachments.array();
+        if(attachments1.length > 0) {
+            attachments1 = attachments1.map(e => e.url);
+            messageDeleteEmbed.addField('Old Message Attachments', attachments1, true);
+        }
+
+        let attachments2 = msg2.attachments.array();
+        if(attachments2.length > 0) {
+            attachments2 = attachments2.map(e => e.url);
+            messageDeleteEmbed.addField('Old Message Attachments', attachments2, true);
+        }
+
+        let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
+        if(webhook && !msg2.author.bot) webhook.send(messageDeleteEmbed);
     });
 });

@@ -43,17 +43,17 @@ O.run = async (msg, args, queue) => {
             msg.client.on('messageReactionAdd', async (react, user) => {
                 if(react.partial) {
                     try {await react.fetch();}
-                    catch(e) {return console.log(e);}
+                    catch(e) {if(e) throw e;}
                 }
                 if(react.message == m && !user.bot) msg.guild.members.cache.find(i => i.id == user.id).roles.add(verifyRole).catch(e => {console.log(e)});
             });
             msg.client.on('messageReactionRemove', async (react, user) => {
                 if(react.partial) {
                     try {await react.fetch();}
-                    catch(e) {return console.log(e);}
+                    catch(e) {if(e) throw e;}
                 }
                 if(react.message == m && !user.bot) msg.guild.members.cache.find(i => i.id == user.id).roles.remove(verifyRole).catch(e => {console.log(e)});
-            })
+            });
         });
     })
     .catch(e => {
