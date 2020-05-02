@@ -157,7 +157,7 @@ bot.login(token);
 
 bot.once('ready', () => {
     checksum();
-    console.log('\x1b[32m%s\x1b[0m','Serv Ready.');
+    console.log('\x1b[32m%s\x1b[0m',`${bot.user.username} Ready.`);
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
 });
 

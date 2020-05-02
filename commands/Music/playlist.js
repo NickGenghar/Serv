@@ -39,13 +39,13 @@ module.exports = {
             let plNames = [];
             for(let i = 0; i < pl.length; i++) {
                 if([pl.name != ''])
-                plNames.push(pl.name);
+                plNames.push(pl[i].name);
             }
             let PlaylistEmbed = new Discord.MessageEmbed()
             .setTitle('Playlist')
             .setColor(color.white)
             .setThumbnail(msg.author.displayAvatarURL({size: 2048}))
-            .addField('Your Playlists', plNames || 'No playlist created.');
+            .addField('Your Playlists', plNames.length > 0 ? plNames : 'No playlist created.');
 
             return msg.channel.send({embed: PlaylistEmbed});
         }
@@ -62,9 +62,9 @@ module.exports = {
             case('list'):
                 let plInfo = pl.find(n => n.name == selection);
                 if(plInfo) {
-                    let PlaylistListEmbed = new Discord.msgEmbed()
-                    .setTitle(`${plInfo.name} Playlist Info`)
-                    .addField('Number of Tracks', plInfo.data.length);
+                    let PlaylistListEmbed = new Discord.MessageEmbed()
+                    .setTitle(`${plInfo.name} List`)
+                    .setDescription(plInfo.data.join('\n'));
 
                     return msg.channel.send({embed: PlaylistListEmbed});
                 } else {
