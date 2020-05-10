@@ -59,6 +59,7 @@ O.run = async (msg, args, queue) => {
     .catch(e => {
         if(e) throw e;
     });
+    msg.channel.send(`Reaction role added to the channel ${verifyChannel}.`);
 }
 
 module.exports = O;

@@ -48,5 +48,14 @@
         "Oh really? I never would have though so.",
         "Instructions unclear. Is it \"Destroy Humanity\"?",
         "Please ask Nick Genghar for that question. I am not sentient to understant your request."
+    ],
+    "linkPattern": [
+        "co",
+        "com",
+        "org",
+        "net",
+        "gov",
+        "xyz",
+        "gg"
     ]
 }
