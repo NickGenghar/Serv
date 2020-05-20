@@ -1,6 +1,11 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
+const integrity = require('./initial/integrity.js');
+const clear = require('./initial/clear.js');
+const reload = require('./initial/reload.js');
+const checksum = require('./initial/checksum.js');
+
 const defaults = require('./configurations/defaults.json');
 const master = require('./configurations/master.json');
 const token = require('./configurations/token.json').token;
@@ -20,133 +25,9 @@ process.on('unhandledRejection', (e) => {
     console.log(e);
 });
 
-//Create directory tree for data storage at first launch from clone.
-//Also determine the status of each subfolders.
-fs.access('./data', (e) => {
-    if(e) {
-        console.log('\x1b[33m%s\x1b[0m','Directory doesn\'t exist. Creating...');
-        fs.mkdir('./data', (e) => {
-            if(e) return console.log('\x1b[31m%s\x1b[0m\n%s','Encountered error while creating data stores.\nYou might not have the required permission to do so', e);
-        });
-    }
-
-    fs.readdir('./data', (e,f) => {
-        if(e) throw e;
-        f = f.filter(v => {return v.indexOf('.') < 0;});
-        defaults.datastore.forEach(d => {
-            fs.mkdir(`./data/${d}`, e => {
-                if(e) console.log('\x1b[36m%s\x1b[0m',`Directory [${d}] available.`);
-                else console.log('\x1b[33m%s\x1b[0m',`Directory [${d}] doesn\'t exist. Creating...`);
-            });
-        });
-    });
-});
-
-//Clear temp folder at startup
-let clear = () => {
-    fs.access('./temp', (e) => {
-        if(e) {
-            fs.mkdir('./temp', (e) => {
-                if(e) throw e;
-            });
-        } else {
-            fs.readdir('./temp', (e, f) => {
-                if(e) throw e;
-                let files = f.filter(e => {if(e.indexOf('.') > -1) return e});
-                files.forEach(g => {
-                    fs.unlink(`./temp/${g}`, e => {
-                        if(e) throw e;
-                    });
-                });
-            });
-        }
-    });
-}
-
-let checksum = () => {
-    const guilds = bot.guilds.cache.array().map(i => i.id);
-    const available = fs.readdirSync('./data/guilds');
-    guilds.forEach(a => {
-        if(!available.includes(`${a}.json`)) {
-            console.log('\x1b[36m%s\x1b[0m',`Creating default server data for the server [${a}]`);
-            fs.writeFile(`./data/guilds/${a}.json`, JSON.stringify(defaults.server_config), (e) => {if(e) throw e;});
-        } else {
-            console.log('\x1b[36m%s\x1b[0m',`Server data for the server [${a}] available`);
-        }
-    })
-}
-
-let reload = () => {
-    if(typeof bot.timeout === 'object') bot.timeout.forEach(a => {bot.clearTimeout(a);});
-    if(typeof bot.immediate === 'object') bot.immediate.forEach(a => {bot.clearImmediate(a);});
-    if(typeof bot.interval === 'object') bot.interval.forEach(a => {bot.clearInterval(a);});
-    bot.timeout = new Object;
-    bot.immediate = new Object;
-    bot.interval = new Object;
-
-    bot.commands = new Discord.Collection();
-    bot.sideload = new Discord.Collection();
-
-    const sideloads = fs.readdirSync('./sideload').filter(file => {if(file.indexOf('.js') > -1) return file;});
-    if(sideloads.length <= 0) {
-        console.error('\x1b[31m%s\x1b[0m','Required directory is empty! Cannot proceed without any command modules installed. Exiting...');
-        return process.exit(-1);
-    } else {
-        sideloads.forEach(sides => {
-            delete require.cache[require.resolve(`./sideload/${sides}`)];
-            let pull = require(`./sideload/${sides}`);
-            bot.sideload.set(pull.task, pull);
-        });
-    }
-
-    let componentIssue = [];
-    let commandFolder = fs.readdirSync('./commands').filter(folder => {if(folder.indexOf('.') < 0) return folder});
-    if(commandFolder.length <= 0) {
-        console.error('\x1b[31m%s\x1b[0m','Command modules are empty! Cannot proceed if no commands are present. Exiting...');
-        return process.exit(-1);
-    } else {
-        commandFolder.forEach(subFolder => {
-            let commandFiles = fs.readdirSync(`./commands/${subFolder}`).filter(files => {if(files.indexOf('.js') > -1) return files});
-            if(commandFiles.length <= 0) {
-                console.error('\x1b[33m%s\x1b[0m',`Folder "${subFolder}" is empty. Ignoring...`);
-            } else {
-                let command = [];
-                let index = 0;
-                commandFiles.forEach(files => {
-                    try {
-                        delete require.cache[require.resolve(`./commands/${subFolder}/${files}`)];
-                        let pull = require(`./commands/${subFolder}/${files}`);
-                        if(pull.name != '' && pull.alias.length >= 1 && typeof pull.run === 'function') {
-                            command[index] = {
-                                name: pull.name,
-                                alias: pull.alias,
-                                desc: pull.desc,
-                                usage: pull.usage,
-                                run: pull.run,
-                                type: subFolder
-                            }
-                            bot.commands.set(command[index].name, command[index++]);
-                            console.log('\x1b[36m%s\x1b[0m',`Loaded command [${pull.name}] from "./commands/${subFolder}/${files}"`);
-                        } else {
-                            componentIssue.push(files);
-                            console.log('\x1b[33m%s\x1b[0m',`Command module [${files}] has incomplete parameters. Ignoring...`);
-                        }
-                    } catch(e) {
-                        componentIssue.push(files);
-                        console.error('\x1b[31m%s\x1b[0m',e);
-                    }
-                })
-            }
-        })
-    }
-
-    if(componentIssue.length > 0)
-    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules returns an issue flag. Check the logs to see what module causing it.');
-    return componentIssue;
-}
-
-reload();
+integrity();
 clear();
+reload(bot);
 
 if(bot.commands.length <= 0) {
     console.error('\x1b[31m%s\x1b[0m', 'All command subfolders are empty! Cannot proceed without any command modules installed. Exiting...');
@@ -156,7 +37,7 @@ if(bot.commands.length <= 0) {
 bot.login(token);
 
 bot.once('ready', () => {
-    checksum();
+    checksum(bot);
     console.log('\x1b[32m%s\x1b[0m',`${bot.user.username} Ready.`);
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
 });
