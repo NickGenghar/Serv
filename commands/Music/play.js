@@ -115,6 +115,8 @@ module.exports = {
                 SQ.playing = true;
                 return msg.channel.send('The player is now resumed.');
             }
+        } else if(!SQ && !args[0]) {
+            return msg.channel.send('No search query inputted.');
         }
 
         if(!msg.member.voice.channel) return msg.channel.send('You are not in a voice channel.');

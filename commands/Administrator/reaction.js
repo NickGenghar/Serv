@@ -18,7 +18,7 @@ O.usage = [
     'Known issue: Does not support unicode emoji.'
 ];
 O.run = async (msg, args, queue) => {
-    const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
+    let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
     if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
     if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');
     if(!svr.modules.includes('reaction')) return msg.channel.send('This module is not activated. Please activate it via the `setup` command.');
@@ -38,6 +38,12 @@ O.run = async (msg, args, queue) => {
 
     verifyChannel.send(verifyEmbed)
     .then(m => {
+        svr.reactions = [{
+            msg: m.id,
+            role: verifyRole.id,
+            emoji: reactionEmoji.id
+        }]
+        fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
         m.react(reactionEmoji)
         .then(() => {
             msg.client.on('messageReactionAdd', async (react, user) => {

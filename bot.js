@@ -42,6 +42,36 @@ bot.once('ready', () => {
     bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
 });
 
+bot.on('raw', tag => {
+    if(tag.t == 'MESSAGE_REACTION_ADD') {
+        let svr = JSON.parse(fs.readFileSync(`./data/guilds/${tag.d.guild_id}.json`));
+        if(svr.reactions.length > 0) {
+            if(svr.reactions[0].msg == tag.d.message_id && svr.reactions[0].emoji == tag.d.emoji.id) {
+                let guild = bot.guilds.cache.find(i => i.id == tag.d.guild_id);
+                let role = guild.roles.cache.find(i => i.id == svr.reactions[0].role);
+                let member = guild.members.cache.find(i => i.id == tag.d.user_id);
+                member.roles.add(role)
+                .catch(e => {
+                    if(e) throw e;
+                });
+            }
+        }
+    } else if(tag.t == 'MESSAGE_REACTION_REMOVE') {
+        let svr = JSON.parse(fs.readFileSync(`./data/guilds/${tag.d.guild_id}.json`));
+        if(svr.reactions.length > 0) {
+            if(svr.reactions[0].msg == tag.d.message_id && svr.reactions[0].emoji == tag.d.emoji.id) {
+                let guild = bot.guilds.cache.find(i => i.id == tag.d.guild_id);
+                let role = guild.roles.cache.find(i => i.id == svr.reactions[0].role);
+                let member = guild.members.cache.find(i => i.id == tag.d.user_id);
+                member.roles.remove(role)
+                .catch(e => {
+                    if(e) throw e;
+                });
+            }
+        }
+    }
+});
+
 bot.on('guildCreate', guild => {
     guild.client.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
     .then(w => {
@@ -95,7 +125,7 @@ bot.on('channelCreate', async chan => {
     guild.fetchWebhooks()
     .then(a => {
         let channelCreateEmbed = new Discord.MessageEmbed()
-        .setTitle('Channel Deleted')
+        .setTitle('Channel Created')
         .addField('Channel Name', chan.toJSON().name, true)
         .addField('Channel Type', chan.type, true)
         .addField('Created Timestamp', chan.createdAt, true);
