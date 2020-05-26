@@ -4,8 +4,8 @@ const os = require('os');
 const color = require.main.require('./configurations/color.json');
 
 module.exports = {
-    name: 'stat',
-    alias: ['stat', 'st'],
+    name: 'stats',
+    alias: ['stat', 'st', 'stats'],
     desc: 'Get\'s the bot\'s hosting server statistics.',
     usage: [
         '//stat'

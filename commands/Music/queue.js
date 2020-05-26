@@ -11,11 +11,12 @@ module.exports = {
         let SQ = queue.get(`${msg.guild.id}.music`);
         if(!SQ) return;
         let playEmbed = new Discord.MessageEmbed()
-        .setThumbnail(SQ.songs[0].thumbnail)
+        .setThumbnail(SQ.list[0].thumbnail)
         .setColor(color.red)
-        .addField('Now Playing', SQ.songs[0].title)
-        .addField('First 10 Music In Queue', SQ.songs.map(s => `**${s.title}**`).slice(0, 10).join('\n'));
-    
+        .setTitle('Now Playing')
+        .setDescription(SQ.list[0].title)
+        .addField('First 10 Music In Queue', SQ.list.map(s => `**${s.title}**`).slice(0, 10).join('\n'));
+
         msg.channel.send({embed: playEmbed});
     }
 }

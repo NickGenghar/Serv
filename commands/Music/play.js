@@ -1,205 +1,219 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const ytdl = require('ytdl-core');
-const YT = require('simple-youtube-api');
+const YouTube = require('simple-youtube-api');
 
 const color = require.main.require('./configurations/color.json');
-const key = require.main.require('./configurations/token.json').ytkey;
+const token = require.main.require('./configurations/token.json').ytkey;
 
-const youtube = new YT(key);
+const youtube = new YouTube(token);
 
-let play = (msg, song, queue) => {
+/**
+ * 
+ * @param {any} msg The Discord.Message object.
+ * @param {any} song The stream data.
+ * @param {Map} queue The queue Map.
+ */
+let player = (msg, song, queue) => {
     const SQ = queue.get(`${msg.guild.id}.music`);
-
+    
     if(!song) {
-        SQ.vChan.leave();
+        SQ.chan.leave();
         queue.delete(`${msg.guild.id}.music`);
         return msg.channel.send('Queue finished.');
     }
 
     let playEmbed = new Discord.MessageEmbed()
     .setColor(color.red)
-    .setImage(SQ.songs[0].thumbnail)
-    .addField('Now Playing', SQ.songs[0].title);
+    .setImage(SQ.list[0].thumbnail)
+    .setTitle('Now Playing')
+    .setDescription(SQ.list[0].title);
 
     msg.channel.send({embed: playEmbed});
-    const dispatcher = SQ.connection.play(ytdl(song.url))
+    SQ.conn.play(ytdl(song.url))
     .on('finish', () => {
+        let loopable = SQ.list.shift();
+
         if(SQ.loop) {
-            let loopable = SQ.songs.shift();
-            SQ.songs.push(loopable);
-        } else {SQ.songs.shift();}
-        play(msg, SQ.songs[0], queue);
+            if(SQ.mode == 0) {
+                SQ.list.unshift(loopable);
+            } else {
+                SQ.list.push(loopable)
+            }
+        }
+        player(msg, SQ.list[0], queue);
     })
     .on('error', (e) => {
-        msg.channel.send('Encountered error during playback. Stopping...');
-        SQ.vChan.leave();
+        SQ.chan.leave();
         queue.delete(`${msg.guild.id}.music`);
-        console.log(e);
-    });
-    dispatcher.setVolumeLogarithmic(1);
-};
-
-let vHandler = async (msg, streamData, queue) => {
-    const SQ = queue.get(`${msg.guild.id}.music`);
-
-    if(!SQ) {
-        const QCon = {
-            vChan: msg.member.voice.channel,
-            connection: null,
-            loop: false,
-            songs: [],
-            playing: true
-        };
-        queue.set(`${msg.guild.id}.music`, QCon);
-
-        QCon.songs = QCon.songs.concat(streamData);
-
-        try {
-            var connection = await msg.member.voice.channel.join()
-            QCon.connection = connection;
-            await play(msg, QCon.songs[0], queue);
-        } catch(e) {
-            queue.delete(`${msg.guild.id}.music`);
-            msg.guild.me.voice.channel.leave();
-            msg.channel.send('Encountered error during connection.');
-            console.log(e);
-        }
-    } else {
-        SQ.songs = SQ.songs.concat(streamData);
-        if(Array.isArray(streamData)) return msg.channel.send('Added a playlist to the queue.');
-
-        let playAddEmbed = new Discord.MessageEmbed()
-        .setImage(streamData.thumbnail)
-        .addField('Added To Queue', streamData.title);
-    
-        msg.channel.send({embed: playAddEmbed});
-    }msg.guild.id
+        msg.channel.send('Encountered error during playback. Stopping...')
+        .then(() => {
+            throw e;
+        });
+    })
+    .setVolumeLogarithmic(1);
 }
 
-module.exports = {
-    name: 'play',
-    alias: ['play', 'p'],
-    desc: 'Play a music into the voice channel.',
-    usage: [
-        '//play <Link | Search Term>',
-        'Link: Link to music.',
-        'Search Term: Search term to look for the music.',
-        '',
-        '//play //playlist <Playlist>',
-        'Playlist: Playlist created by the use of //playlist command.'
-    ],
-    run: async (msg, args, queue) => {
-        const prefix = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`)).prefix;
-        let pl;
-        let init = [{
-            name: '',
-            data: []
-        }]
+/**
+ * 
+ * @param {any} msg The Discord.Message object.
+ * @param {Array<String>} stream A collection of links.
+ * @param {Map} queue The queue Map.
+ */
+let handler = async (msg, stream, queue) => {
+    let SQ = queue.get(`${msg.guild.id}.music`);
+
+    if(!SQ) {
+        let Q = {
+            chan: msg.member.voice.channel,
+            conn: null,
+            loop: false,
+            mode: 0,
+            list: [],
+            play: true
+        }
+        queue.set(`${msg.guild.id}.music`, Q);
+
+        Q.list = Q.list.concat(stream);
 
         try {
-            pl = JSON.parse(fs.readFileSync(`./data/playlist/${msg.author.id}.json`));
+            let conn = await msg.member.voice.channel.join();
+            Q.conn = conn;
+            await player(msg, Q.list[0], queue);
         } catch(e) {
-            pl = init;
-            fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(init));
+            msg.channel.send('Encountered error during connection.')
+            .then(() => {throw e;});
         }
-        let SQ = queue.get(`${msg.guild.id}.music`);
+    } else {
+        SQ.list = SQ.list.concat(stream);
+    }
+}
 
-        if(SQ && !args[0]) {
-            if(SQ.playing) {
-                SQ.connection.dispatcher.pause();
-                SQ.playing = false;
-                return msg.channel.send('The player is now paused.');
-            } else {
-                SQ.connection.dispatcher.resume();
-                SQ.playing = true;
-                return msg.channel.send('The player is now resumed.');
-            }
-        } else if(!SQ && !args[0]) {
-            return msg.channel.send('No search query inputted.');
+O = new Object;
+
+O.name = 'play';
+O.alias = ['play', 'p'];
+O.desc = 'Play music with the bot.';
+O.usage = [
+    '//play {Query|Link}',
+    '',
+    'Query: Search query to a YouTube video.',
+    'Link: Link to a YouTube video.'
+];
+O.run = async (msg, args, queue) => {
+    const prefix = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`)).prefix;
+    let SQ = queue.get(`${msg.guild.id}.music`);
+    if(SQ && !args[0]) {
+        if(SQ.play) {
+            msg.channel.send('The player is now paused.');
+            SQ.conn.dispatcher.pause();
+            SQ.play = false;
+        } else {
+            msg.channel.send('The player is now unpaused.');
+            SQ.conn.dispatcher.resume();
+            SQ.play = true;
         }
+    } else if(!SQ && !args[0]) {
+        return msg.channel.send('No search query inputted.');
+    }
 
-        if(!msg.member.voice.channel) return msg.channel.send('You are not in a voice channel.');
-
-        let plName = pl.find(n => n.name == args[1]);
-        let plLinks = [];
-        if(plName) plLinks = plName.data;
-        let ST = args.join(' ').replace(/<(.+)>/g, '$1');
-        let streamData = [];
-
-        if(ST.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
-            msg.channel.send('Processing youtube playlist...');
-            const playlist = await youtube.getPlaylist(ST);
+    let stream = [];
+    let search = args.join(' ').replace(/<(.+)>/g, '$1');
+    if(search.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
+        msg.channel.send('Processing playlist...')
+        .then(async m => {
+            const playlist = await youtube.getPlaylist(search);
             const pl = await playlist.getVideos();
             for(const v of Object.values(pl)) {
                 const video = await youtube.getVideoByID(v.id);
-                
+
                 let videoThumbnail;
-                if(video.thumbnails.hasOwnProperty('maxres')) videoThumbnail = video.thumbnails.maxres.url;
-                else if(video.thumbnails.hasOwnProperty('standard')) videoThumbnail = video.thumbnails.standard.url;
-                else if(video.thumbnails.hasOwnProperty('high')) videoThumbnail = video.thumbnails.high.url;
-                else if(video.thumbnails.hasOwnProperty('medium')) videoThumbnail = video.thumbnails.medium.url;
-                else videoThumbnail = video.thumbnails.default.url;
+                let pool = Object.keys(video.thumbnails);
+                if(pool.indexOf('maxres') > -1) {videoThumbnail = video.thumbnails.maxres.url}
+                else if(pool.indexOf('high') > -1) {videoThumbnail = video.thumbnails.high.url}
+                else if(pool.indexOf('medium') > -1) {videoThumbnail = video.thumbnails.medium.url}
+                else if(pool.indexOf('standard') > -1) {videoThumbnail = video.thumbnails.standard.url}
+                else {videoThumbnail = video.thumbnails.default.url;}
+                let load = {
+                    title: video.title,
+                    id: video.id,
+                    url: video.url,
+                    thumbnail: videoThumbnail,
+                    description: video.description
+                }
+
+                stream.push(load);
+            };
+            m.edit('Playlist imported...');
+            return handler(msg, stream, queue);
+        });
+    } else if(!SQ && args[0] != `${prefix}playlist`) {
+        msg.channel.send('Searching...')
+        .then(async m => {
+            let video;
+            try {
+                video = await youtube.getVideo(search);
+                m.edit('Retrieving data from server...');
+            } catch(e) {
+                try {
+                    let vs = await youtube.searchVideos(search, 1);
+                    video = await youtube.getVideoByID(vs[0].id);
+                    m.edit('Retrieving data from server...');
+                } catch(e) {
+                    m.edit('Provided search query failed to return any result.')
+                    .then(() => {throw e;});
+                }
+            }
+
+            let videoThumbnail;
+            let pool = Object.keys(video.thumbnails);
+            if(pool.indexOf('maxres') > -1) {videoThumbnail = video.thumbnails.maxres.url}
+            else if(pool.indexOf('high') > -1) {videoThumbnail = video.thumbnails.high.url}
+            else if(pool.indexOf('medium') > -1) {videoThumbnail = video.thumbnails.medium.url}
+            else if(pool.indexOf('standard') > -1) {videoThumbnail = video.thumbnails.standard.url}
+            else {videoThumbnail = video.thumbnails.default.url;}
+            let load = {
+                title: video.title,
+                id: video.id,
+                url: video.url,
+                thumbnail: videoThumbnail,
+                description: video.description
+            }
+
+            stream.push(load);
+
+            if(SQ) {
+                m.edit(`Added the following music to queue:\n${stream.keys()}`);
+            }
+            return handler(msg, stream, queue);
+        });
+    } else if(!SQ && args[0] == `${prefix}playlist` && args.length > 1) {
+        args.shift();
+        msg.channel.send('Processing localized playlist...')
+        .then(async m => {
+            const playlist = JSON.parse(fs.readFileSync(`./data/playlist/${msg.author.id}.json`)).find(e => e.name == args.join(' ')).data;
+            if(!playlist) return msg.channel.send('Given playlist name does not exist.');
+            for(const v of Object.values(playlist)) {
+                const video = await youtube.getVideoByID(v.id);
 
                 let load = {
-                    id: video.id,
-                    title: video.title,
-                    url: `https://www.youtube.com/watch?v=${video.id}`,
-                    thumbnail: videoThumbnail,
-                    description: video.description
-                }
-                streamData.push(load);
-            }
-            return vHandler(msg, streamData, queue);
-        } else {
-            if(args[0]!=`${prefix}playlist`) {
-                msg.channel.send('Searching...');
-                try{
-                    var video = await youtube.getVideo(ST);
-                    msg.channel.send('Retrieving data from server...');
-                } catch(e) {
-                    try {
-                        var vSearched = await youtube.searchVideos(ST, 1);
-                        var video = await youtube.getVideoByID(vSearched[0].id);
-                        msg.channel.send('Retrieving data from server...');
-                    } catch (e) {
-                        return msg.channel.send('Provided search term fails to return any videos.');
-                    }
-                }
-
-                let videoThumbnail;
-                if(video.thumbnails.hasOwnProperty('maxres')) videoThumbnail = video.thumbnails.maxres.url;
-                else if(video.thumbnails.hasOwnProperty('standard')) videoThumbnail = video.thumbnails.standard.url;
-                else if(video.thumbnails.hasOwnProperty('high')) videoThumbnail = video.thumbnails.high.url;
-                else if(video.thumbnails.hasOwnProperty('medium')) videoThumbnail = video.thumbnails.medium.url;
-                else videoThumbnail = video.thumbnails.default.url;
-
-                streamData = {
-                    id: video.id,
-                    title: video.title,
-                    url: `https://www.youtube.com/watch?v=${video.id}`,
-                    thumbnail: videoThumbnail,
+                    title: v.title,
+                    id: v.id,
+                    url: v.url,
+                    thumbnail: v.thumbnail,
                     description: video.description
                 }
 
-                return vHandler(msg, streamData, queue);
-            } else if(args[0]==`${prefix}playlist` && plName) {
-                msg.channel.send('Importing playlist...');
-                for(let i = 0; i < plLinks.length; i++) {
-                    let video = await ytdl.getInfo(plLinks[i]);
-                    let load = {
-                        id: video.video_id,
-                        title: video.title,
-                        url: video.video_url,
-                        thumbnail: video.player_response.videoDetails.thumbnail.thumbnails[video.player_response.videoDetails.thumbnail.thumbnails.length - 1].url,
-                        description: video.description
-                        //There is an issue when using video.thumbnail_url method which causes it to return 'undefined'...
-                    }
-                    streamData.push(load);
-                }
-                msg.channel.send('Playlist imported.');
-                return vHandler(msg, streamData, queue);
-            }
-        }
+                stream.push(load);
+            };
+            m.edit('Playlist imported...');
+            return handler(msg, stream, queue);
+        });
+    } else if(!SQ && args[0] == `${prefix}playlist` && args.length <= 1) {
+        return msg.channel.send('No playlist name inputted.');
+    } else {
+        return msg.channel.send('No search query inputted.');
     }
 }
+
+module.exports = O;

@@ -17,8 +17,8 @@ module.exports = {
         'Only single word playlist name supported.'
     ],
     usage: [
-        'playlist <Option> [Selection] [Data]',
-        'Option: Available options: create, add, delete, show',
+        '//playlist <Option> [Selection] [Data]',
+        'Option: Available options: create, add, delete, list',
         'Selection: Playlist name',
         'Data: Link or search term to video.'
     ],
@@ -51,27 +51,92 @@ module.exports = {
         }
 
         switch(option.toLowerCase()) {
-            case('create'):
+            case('create'): {
                 pl.push({
                     name: selection,
                     data: []
                 });
                 fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
                 return msg.channel.send(`Playlist **${selection}** has been created. Type "playlist add ${selection} <link>" to add your music links to this playlist.`);
+            }
 
-            case('list'):
-                let plInfo = pl.find(n => n.name == selection);
-                if(plInfo) {
-                    let PlaylistListEmbed = new Discord.MessageEmbed()
-                    .setTitle(`${plInfo.name} List`)
-                    .setDescription(plInfo.data.join('\n'));
-
-                    return msg.channel.send({embed: PlaylistListEmbed});
-                } else {
-                    return msg.channel.send(`Playlist **${selection}** doesn't exist.`);
+            case('list'): {
+                if(!queue.get(`${msg.guild.id}.${msg.author.id}`)) {
+                    queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
                 }
 
-            case('add'):
+                let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
+
+                let plInfo = pl.find(n => n.name == selection);
+                if(plInfo) {
+                    let index = 0;
+                    let PlaylistListEmbed = new Discord.MessageEmbed()
+                    .setTitle(`${plInfo.name} List`)
+                    .setDescription(`[${plInfo.data[index].title}](${plInfo.data[index].url})`)
+                    .setImage(plInfo.data[index].thumbnail);
+
+                    let filterReact = (reaction, user) => {
+                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🔴') && user.id == static;
+                    }
+
+                    msg.channel.send({embed: PlaylistListEmbed})
+                    .then(m => {
+                        m.react('◀')
+                        .then(() => {m.react('▶')})
+                        .then(() => {m.react('🔴')});
+
+                        let data = m.createReactionCollector(filterReact, {idle: 15000});
+                        data.on('collect', async (react, user) => {
+                            let newPlaylistEmbed = new Discord.MessageEmbed(PlaylistListEmbed);
+
+                            switch(react.emoji.name) {
+                                case('◀'): {
+                                    index--;
+                                    if(index < 0) index = 0;
+                                    newPlaylistEmbed
+                                    .setDescription(`[${plInfo.data[index].title}](${plInfo.data[index].url})`)
+                                    .setImage(plInfo.data[index].thumbnail);
+                                } break;
+                                case('▶'): {
+                                    index++;
+                                    if(index >= plInfo.data.length) index = plInfo.data.length - 1;
+                                    newPlaylistEmbed
+                                    .setDescription(`[${plInfo.data[index].title}](${plInfo.data[index].url})`)
+                                    .setImage(plInfo.data[index].thumbnail);
+                                } break;
+                                case('🔴'): {
+                                    let deleted = plInfo.data.splice(index, 1);
+                                    newPlaylistEmbed
+                                    .setFooter(`Successfully deleted:\n${deleted[0].title}`, deleted[0].thumbnail);
+                                    index = 0;
+                                    fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
+                                } break;
+                                default:
+                            }
+                            m.edit({embed: newPlaylistEmbed})
+                            .then(async () => {
+                                const collection = m.reactions.cache.filter(r => r.users.cache.has(static));
+                                try {
+                                    for(const r of collection.values())
+                                    await r.users.remove(static);
+                                } catch(e) {
+                                    if(e) throw e;
+                                }
+                            });
+                        });
+                        data.on('end', () => {
+                            let finalEmbed = new Discord.MessageEmbed()
+                            .setTitle('Finished.');
+                            m.edit({embed: finalEmbed})
+                            .then(i => i.reactions.removeAll());
+                        });
+                    });
+                } else {
+                    msg.channel.send(`Playlist **${selection}** doesn't exist.`);
+                }
+            } break;
+
+            case('add'): {
                 let plLink = pl.find(n => n.name == selection);
                 if(!plLink) return msg.channel.send(`Playlist **${selection}** doesn't exist`);
                 msg.channel.send('Searching...');
@@ -88,27 +153,31 @@ module.exports = {
                     }
                 }
 
-                if(plLink)
-                plLink.data.push(link.url);
+                let videoThumbnail;
+                let pool = Object.keys(link.thumbnails);
+                if(pool.indexOf('maxres') > -1) {videoThumbnail = link.thumbnails.maxres.url}
+                else if(pool.indexOf('high') > -1) {videoThumbnail = link.thumbnails.high.url}
+                else if(pool.indexOf('medium') > -1) {videoThumbnail = link.thumbnails.medium.url}
+                else if(pool.indexOf('standard') > -1) {videoThumbnail = link.thumbnails.standard.url}
+                else {videoThumbnail = link.thumbnails.default.url;}
+                plLink.data.push({
+                    title: link.title,
+                    id: link.id,
+                    thumbnail: videoThumbnail,
+                    url: link.url
+                });
 
                 fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
-                msg.channel.send(`Music **${link.title}** has been added to playlist **${selection}**`);
-            break;
+                return msg.channel.send(`Music **${link.title}** has been added to playlist **${selection}**`);
+            }
 
-            case('remove'):
-                let plLinkData = pl.find(n => n.name == selection);
-                let vidNames = [];
-                for(let i = 0; i < plLinkData.length; i++)
-                vidNames[i] = (await ytdl.getInfo(plLinkData.data[i])).title;
-            break;
-
-            case('delete'):
+            case('delete'): {
                 let plLinkDelete = pl.find(n => n.name == selection);
                 let plName = plLinkDelete.name;
                 if(plLinkDelete) pl.splice(pl.findIndex(key => key.name == selection), 1);
                 fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
-                msg.channel.send(`Playlist ${plName} has been deleted.`);
-            break;
+                return msg.channel.send(`Playlist ${plName} has been deleted.`);
+            }
 
             default:
         }

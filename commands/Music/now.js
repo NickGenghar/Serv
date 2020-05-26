@@ -13,10 +13,11 @@ module.exports = {
 
         let playEmbed = new Discord.MessageEmbed()
         .setColor(color.red)
-        .setThumbnail(SQ.songs[0].thumbnail)
-        .addField('Now Playing', SQ.songs[0].title)
-        .addField('Description', SQ.songs[0].description);
-    
+        .setThumbnail(SQ.list[0].thumbnail)
+        .setTitle('Now Playing', SQ.list[0].title)
+        .setDescription(SQ.list[0].description)
+        .setURL(SQ.list[0].url);
+
         msg.channel.send({embed: playEmbed});
     }
 }
