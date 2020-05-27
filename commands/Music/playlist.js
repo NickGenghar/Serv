@@ -52,6 +52,7 @@ module.exports = {
 
         switch(option.toLowerCase()) {
             case('create'): {
+                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to create.\n`/playlist create <Playlist Name>`');
                 pl.push({
                     name: selection,
                     data: []
@@ -61,6 +62,7 @@ module.exports = {
             }
 
             case('list'): {
+                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to list.\n`/playlist list <Playlist Name>`');
                 if(!queue.get(`${msg.guild.id}.${msg.author.id}`)) {
                     queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
                 }
@@ -71,21 +73,22 @@ module.exports = {
                 if(plInfo) {
                     let index = 0;
                     let PlaylistListEmbed = new Discord.MessageEmbed()
-                    .setTitle(`${plInfo.name} List`)
+                    .setTitle(`${plInfo.name} [${index+1} of ${plInfo.data.length}]`)
                     .setDescription(`[${plInfo.data[index].title}](${plInfo.data[index].url})`)
                     .setImage(plInfo.data[index].thumbnail);
 
                     let filterReact = (reaction, user) => {
-                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🔴') && user.id == static;
+                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🗑' || reaction.emoji.name == '🔴') && user.id == static;
                     }
 
                     msg.channel.send({embed: PlaylistListEmbed})
                     .then(m => {
                         m.react('◀')
                         .then(() => {m.react('▶')})
+                        .then(() => {m.react('🗑')})
                         .then(() => {m.react('🔴')});
 
-                        let data = m.createReactionCollector(filterReact, {idle: 15000});
+                        let data = m.createReactionCollector(filterReact);
                         data.on('collect', async (react, user) => {
                             let newPlaylistEmbed = new Discord.MessageEmbed(PlaylistListEmbed);
 
@@ -94,6 +97,7 @@ module.exports = {
                                     index--;
                                     if(index < 0) index = 0;
                                     newPlaylistEmbed
+                                    .setTitle(`${plInfo.name} [${index+1} of ${plInfo.data.length}]`)
                                     .setDescription(`[${plInfo.data[index].title}](${plInfo.data[index].url})`)
                                     .setImage(plInfo.data[index].thumbnail);
                                 } break;
@@ -101,16 +105,20 @@ module.exports = {
                                     index++;
                                     if(index >= plInfo.data.length) index = plInfo.data.length - 1;
                                     newPlaylistEmbed
+                                    .setTitle(`${plInfo.name} [${index+1} of ${plInfo.data.length}]`)
                                     .setDescription(`[${plInfo.data[index].title}](${plInfo.data[index].url})`)
                                     .setImage(plInfo.data[index].thumbnail);
                                 } break;
-                                case('🔴'): {
+                                case('🗑'): {
                                     let deleted = plInfo.data.splice(index, 1);
                                     newPlaylistEmbed
                                     .setFooter(`Successfully deleted:\n${deleted[0].title}`, deleted[0].thumbnail);
                                     index = 0;
                                     fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
                                 } break;
+                                case('🔴'): {
+                                    return data.stop();
+                                } //break;
                                 default:
                             }
                             m.edit({embed: newPlaylistEmbed})
@@ -128,7 +136,10 @@ module.exports = {
                             let finalEmbed = new Discord.MessageEmbed()
                             .setTitle('Finished.');
                             m.edit({embed: finalEmbed})
-                            .then(i => i.reactions.removeAll());
+                            .then(i => {
+                                i.reactions.removeAll()
+                                queue.delete(`${msg.guild.id}.${msg.author.id}`);
+                            });
                         });
                     });
                 } else {
@@ -137,6 +148,8 @@ module.exports = {
             } break;
 
             case('add'): {
+                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to add.\n`/playlist list <Playlist Name>`');
+                else if(args.length <= 2) return msg.channel.send(`Please specify a search query to add into the playlist.\n\`/playlist list ${args[1]} <Query or Link>\``);
                 let plLink = pl.find(n => n.name == selection);
                 if(!plLink) return msg.channel.send(`Playlist **${selection}** doesn't exist`);
                 msg.channel.send('Searching...');
@@ -172,9 +185,11 @@ module.exports = {
             }
 
             case('delete'): {
+                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to delete.\n`/playlist delete <Playlist Name>`');
                 let plLinkDelete = pl.find(n => n.name == selection);
                 let plName = plLinkDelete.name;
-                if(plLinkDelete) pl.splice(pl.findIndex(key => key.name == selection), 1);
+                if(!plLinkDelete) return msg.channel.send(`Playlist **${plName}** doesn't exist.`);
+                pl.splice(pl.findIndex(key => key.name == selection), 1);
                 fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
                 return msg.channel.send(`Playlist ${plName} has been deleted.`);
             }

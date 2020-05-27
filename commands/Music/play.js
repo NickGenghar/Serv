@@ -30,7 +30,8 @@ let player = (msg, song, queue) => {
     .setDescription(SQ.list[0].title);
 
     msg.channel.send({embed: playEmbed});
-    SQ.conn.play(ytdl(song.url))
+    let stream = ytdl(song.url);
+    SQ.conn.play(stream)
     .on('finish', () => {
         let loopable = SQ.list.shift();
 
@@ -101,6 +102,7 @@ O.usage = [
     'Link: Link to a YouTube video.'
 ];
 O.run = async (msg, args, queue) => {
+    if(!msg.member.voice.channel) return msg.channel.send('You are not connected to a voice channel. Please connect to a voice channel first before proceeding.');
     const prefix = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`)).prefix;
     let SQ = queue.get(`${msg.guild.id}.music`);
     if(SQ && !args[0]) {
@@ -113,6 +115,7 @@ O.run = async (msg, args, queue) => {
             SQ.conn.dispatcher.resume();
             SQ.play = true;
         }
+        return;
     } else if(!SQ && !args[0]) {
         return msg.channel.send('No search query inputted.');
     }
@@ -147,72 +150,142 @@ O.run = async (msg, args, queue) => {
             m.edit('Playlist imported...');
             return handler(msg, stream, queue);
         });
-    } else if(!SQ && args[0] != `${prefix}playlist`) {
-        msg.channel.send('Searching...')
-        .then(async m => {
-            let video;
-            try {
-                video = await youtube.getVideo(search);
-                m.edit('Retrieving data from server...');
-            } catch(e) {
+    } else {
+        if(args[0] != `${prefix}playlist`) {
+            msg.channel.send('Searching...')
+            .then(async m => {
+                let video;
                 try {
-                    let vs = await youtube.searchVideos(search, 1);
-                    video = await youtube.getVideoByID(vs[0].id);
+                    video = await youtube.getVideo(search);
                     m.edit('Retrieving data from server...');
                 } catch(e) {
-                    m.edit('Provided search query failed to return any result.')
-                    .then(() => {throw e;});
-                }
-            }
+                    try {
+                        let vs = await youtube.searchVideos(search, 20);
+                        var previd = [];
+                        for(let i = 0; i < vs.length; i++) {
+                            let videoThumbnail = [];
+                            let retrieved = await youtube.getVideoByID(vs[i].id);
+                            let pool = Object.keys(retrieved.thumbnails);
+                            if(pool.indexOf('maxres') > -1) {videoThumbnail[i] = retrieved.thumbnails.maxres.url}
+                            else if(pool.indexOf('high') > -1) {videoThumbnail[i] = retrieved.thumbnails.high.url}
+                            else if(pool.indexOf('medium') > -1) {videoThumbnail[i] = retrieved.thumbnails.medium.url}
+                            else if(pool.indexOf('standard') > -1) {videoThumbnail[i] = retrieved.thumbnails.standard.url}
+                            else {videoThumbnail[i] = retrieved.thumbnails.default.url;}
 
-            let videoThumbnail;
-            let pool = Object.keys(video.thumbnails);
-            if(pool.indexOf('maxres') > -1) {videoThumbnail = video.thumbnails.maxres.url}
-            else if(pool.indexOf('high') > -1) {videoThumbnail = video.thumbnails.high.url}
-            else if(pool.indexOf('medium') > -1) {videoThumbnail = video.thumbnails.medium.url}
-            else if(pool.indexOf('standard') > -1) {videoThumbnail = video.thumbnails.standard.url}
-            else {videoThumbnail = video.thumbnails.default.url;}
-            let load = {
-                title: video.title,
-                id: video.id,
-                url: video.url,
-                thumbnail: videoThumbnail,
-                description: video.description
-            }
-
-            stream.push(load);
-
-            if(SQ) {
-                m.edit(`Added the following music to queue:\n${stream.keys()}`);
-            }
-            return handler(msg, stream, queue);
-        });
-    } else if(!SQ && args[0] == `${prefix}playlist` && args.length > 1) {
-        args.shift();
-        msg.channel.send('Processing localized playlist...')
-        .then(async m => {
-            const playlist = JSON.parse(fs.readFileSync(`./data/playlist/${msg.author.id}.json`)).find(e => e.name == args.join(' ')).data;
-            if(!playlist) return msg.channel.send('Given playlist name does not exist.');
-            for(const v of Object.values(playlist)) {
-                const video = await youtube.getVideoByID(v.id);
-
-                let load = {
-                    title: v.title,
-                    id: v.id,
-                    url: v.url,
-                    thumbnail: v.thumbnail,
-                    description: video.description
+                            if(retrieved.description.length > 1000) retrieved.description = retrieved.description.slice(0, 999).concat('...');
+                            previd[i] = {
+                                title: retrieved.title,
+                                id: retrieved.id,
+                                url: retrieved.url,
+                                thumbnail: videoThumbnail[i],
+                                description: retrieved.description
+                            }
+                        }
+                        m.edit('Retrieving data from server...');
+                    } catch(e) {
+                        m.edit('Provided search query failed to return any result.')
+                        .then(() => {throw e;});
+                    }
                 }
 
-                stream.push(load);
-            };
-            m.edit('Playlist imported...');
-            return handler(msg, stream, queue);
-        });
-    } else if(!SQ && args[0] == `${prefix}playlist` && args.length <= 1) {
-        return msg.channel.send('No playlist name inputted.');
-    } else {
-        return msg.channel.send('No search query inputted.');
+                let index = 0;
+                let videoSelectEmbed = new Discord.MessageEmbed()
+                .setTitle(`[${index+1} of ${previd.length}] ${previd[index].title}`)
+                .setDescription(previd[index].description)
+                .setImage(previd[index].thumbnail);
+
+                m.edit({embed: videoSelectEmbed})
+                .then(() => {
+                    if(!queue.get(`${msg.guild.id}.${msg.author.id}`))
+                        queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
+                    let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
+                    let filterReact = (reaction, user) => {
+                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢') && user.id == static;
+                    }
+
+                    m.react('◀')
+                    .then(() => {m.react('▶')})
+                    .then(() => {m.react('🟢')});
+                    let data = m.createReactionCollector(filterReact);
+                    data.on('collect', (react, user) => {
+                        let newVideoSelectEmbed = new Discord.MessageEmbed(videoSelectEmbed);
+
+                        switch(react.emoji.name) {
+                            case('◀'): {
+                                index--;
+                                if(index < 0) index = 0;
+                                newVideoSelectEmbed
+                                .setTitle(`[${index+1} of ${previd.length}] ${previd[index].title}`)
+                                .setDescription(previd[index].description)
+                                .setImage(previd[index].thumbnail);
+                            } break;
+                            case('▶'): {
+                                index++;
+                                if(index >= previd.length) index = previd.length - 1;
+                                newVideoSelectEmbed
+                                .setTitle(`[${index+1} of ${previd.length}] ${previd[index].title}`)
+                                .setDescription(previd[index].description)
+                                .setImage(previd[index].thumbnail);
+                            } break;
+                            case('🟢'): {
+                                stream.push(previd[index]);
+                                handler(msg, stream, queue);
+                                return data.stop();
+                            } //break;
+                        }
+                        m.edit({embed: newVideoSelectEmbed})
+                        .then(async () => {
+                            const collection = m.reactions.cache.filter(r => r.users.cache.has(static));
+                            try {
+                                for(const r of collection.values())
+                                await r.users.remove(static);
+                            } catch(e) {
+                                if(e) throw e;
+                            }
+                        });
+                    });
+                    data.on('end', () => {
+                        let finalEmbed = new Discord.MessageEmbed(videoSelectEmbed)
+                        .setDescription(previd[index].description)
+                        .setImage(previd[index].thumbnail);
+
+                        if(SQ) {
+                            finalEmbed.setTitle(`Added: ${previd[index].title}`)
+                        } else {
+                            finalEmbed.setTitle(`Selected: ${previd[index].title}`)
+                        }
+                        m.edit({embed: finalEmbed})
+                        .then(() => {
+                            m.reactions.removeAll();
+                            queue.delete(`${msg.guild.id}.${msg.author.id}`);
+                        });
+                    });
+                });
+            });
+        } else if(args[0] == `${prefix}playlist`) {
+            if(args.length <= 1) return msg.channel.send('No playlist name inputted.');
+            args.shift();
+            msg.channel.send('Processing localized playlist...')
+            .then(async m => {
+                const playlist = JSON.parse(fs.readFileSync(`./data/playlist/${msg.author.id}.json`)).find(e => e.name == args.join(' ')).data;
+                if(!playlist) return msg.channel.send('Given playlist name does not exist.');
+                for(const v of Object.values(playlist)) {
+                    const video = await youtube.getVideoByID(v.id);
+
+                    let load = {
+                        title: v.title,
+                        id: v.id,
+                        url: v.url,
+                        thumbnail: v.thumbnail,
+                        description: video.description
+                    }
+
+                    stream.push(load);
+                };
+                m.edit('Playlist imported...');
+                return handler(msg, stream, queue);
+            });
+        }
     }
 }
 
