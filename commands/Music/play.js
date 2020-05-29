@@ -52,6 +52,9 @@ let player = (msg, song, queue) => {
             throw e;
         });
     })
+    .on('speaking', state => {
+        if(!state) SQ.conn.dispatcher.end();
+    })
     .setVolumeLogarithmic(1);
 }
 
@@ -154,14 +157,29 @@ O.run = async (msg, args, queue) => {
         if(args[0] != `${prefix}playlist`) {
             msg.channel.send('Searching...')
             .then(async m => {
-                let video;
+                var previd = [];
                 try {
-                    video = await youtube.getVideo(search);
+                    let videoThumbnail;
+                    let retrieved = await youtube.getVideo(search);
+                    let pool = Object.keys(retrieved.thumbnails);
+                    if(pool.indexOf('maxres') > -1) {videoThumbnail = retrieved.thumbnails.maxres.url}
+                    else if(pool.indexOf('high') > -1) {videoThumbnail = retrieved.thumbnails.high.url}
+                    else if(pool.indexOf('medium') > -1) {videoThumbnai  = retrieved.thumbnails.medium.url}
+                    else if(pool.indexOf('standard') > -1) {videoThumbnai  = retrieved.thumbnails.standard.url}
+                    else {videoThumbnail = retrieved.thumbnails.default.url;}
+
+                    if(retrieved.description.length > 1000) retrieved.description = retrieved.description.slice(0, 999).concat('...');
+                    previd.push({
+                        title: retrieved.title,
+                        id: retrieved.id,
+                        url: retrieved.url,
+                        thumbnail: videoThumbnail,
+                        description: retrieved.description
+                    });
                     m.edit('Retrieving data from server...');
                 } catch(e) {
                     try {
                         let vs = await youtube.searchVideos(search, 20);
-                        var previd = [];
                         for(let i = 0; i < vs.length; i++) {
                             let videoThumbnail = [];
                             let retrieved = await youtube.getVideoByID(vs[i].id);

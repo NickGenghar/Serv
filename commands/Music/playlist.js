@@ -52,7 +52,7 @@ module.exports = {
 
         switch(option.toLowerCase()) {
             case('create'): {
-                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to create.\n`/playlist create <Playlist Name>`');
+                if(!selection) return msg.channel.send('Please specify a playlist name to create.\n`/playlist create <Playlist Name>`');
                 pl.push({
                     name: selection,
                     data: []
