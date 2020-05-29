@@ -52,7 +52,7 @@ module.exports = {
 
         switch(option.toLowerCase()) {
             case('create'): {
-                if(!selection) return msg.channel.send('Please specify a playlist name to create.\n`/playlist create <Playlist Name>`');
+                if(!selection) return msg.channel.send('Please specify a playlist name to create.\n`//playlist create <Playlist Name>`');
                 pl.push({
                     name: selection,
                     data: []
@@ -62,7 +62,7 @@ module.exports = {
             }
 
             case('list'): {
-                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to list.\n`/playlist list <Playlist Name>`');
+                if(!selection) return msg.channel.send('Please specify a playlist name to list.\n`//playlist list <Playlist Name>`');
                 if(!queue.get(`${msg.guild.id}.${msg.author.id}`)) {
                     queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
                 }
@@ -148,51 +148,154 @@ module.exports = {
             } break;
 
             case('add'): {
-                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to add.\n`/playlist list <Playlist Name>`');
-                else if(args.length <= 2) return msg.channel.send(`Please specify a search query to add into the playlist.\n\`/playlist list ${args[1]} <Query or Link>\``);
+                if(!selection) return msg.channel.send('Please specify a playlist name to add.\n`//playlist add <Playlist Name> <Query or Link>`');
+                if(!option) return msg.channel.send(`Please specify a search query to add into the playlist.\n\`//playlist list ${selection} <Query or Link>\``);
                 let plLink = pl.find(n => n.name == selection);
-                if(!plLink) return msg.channel.send(`Playlist **${selection}** doesn't exist`);
-                msg.channel.send('Searching...');
-                try{
-                    var link = await youtube.getVideo(data);
-                    msg.channel.send('Retrieving data from server...');
-                } catch(e) {
-                    try {
-                        var vSearched = await youtube.searchVideos(data, 1);
-                        var link = await youtube.getVideoByID(vSearched[0].id);
-                        msg.channel.send('Retrieving data from server...');
-                    } catch (e) {
-                        return msg.channel.send('Provided search term fails to return any videos.');
+                if(!plLink) return msg.channel.send(`Playlist **${selection}** doesn't exist. Try \`//playlist\` to list down your playlist.`);
+
+                msg.channel.send('Searching...')
+                .then(async m => {
+                    let previd = [];
+                    try{
+                        let videoThumbnail;
+                        let retrieved = await youtube.getVideo(data);
+                        let pool = Object.keys(retrieved.thumbnails);
+                        if(pool.indexOf('maxres') > -1) {videoThumbnail = retrieved.thumbnails.maxres.url}
+                        else if(pool.indexOf('high') > -1) {videoThumbnail = retrieved.thumbnails.high.url}
+                        else if(pool.indexOf('medium') > -1) {videoThumbnai  = retrieved.thumbnails.medium.url}
+                        else if(pool.indexOf('standard') > -1) {videoThumbnai  = retrieved.thumbnails.standard.url}
+                        else {videoThumbnail = retrieved.thumbnails.default.url;}
+
+                        if(retrieved.description.length > 1000) retrieved.description = retrieved.description.slice(0, 999).concat('...');
+                        previd.push({
+                            title: retrieved.title,
+                            id: retrieved.id,
+                            thumbnail: videoThumbnail,
+                            url: retrieved.url,
+                            description: retrieved.description
+                        });
+                        m.edit('Retrieving data from server...');
+                    } catch(e) {
+                        try {
+                            let vs = await youtube.searchVideos(data, 20);
+                            for(let i = 0; i < vs.length; i++) {
+                                let videoThumbnail = [];
+                                let retrieved = await youtube.getVideoByID(vs[i].id);
+                                let pool = Object.keys(retrieved.thumbnails);
+                                if(pool.indexOf('maxres') > -1) {videoThumbnail[i] = retrieved.thumbnails.maxres.url}
+                                else if(pool.indexOf('high') > -1) {videoThumbnail[i] = retrieved.thumbnails.high.url}
+                                else if(pool.indexOf('medium') > -1) {videoThumbnail[i] = retrieved.thumbnails.medium.url}
+                                else if(pool.indexOf('standard') > -1) {videoThumbnail[i] = retrieved.thumbnails.standard.url}
+                                else {videoThumbnail[i] = retrieved.thumbnails.default.url;}
+
+                                if(retrieved.description.length > 1000) retrieved.description = retrieved.description.slice(0, 999).concat('...');
+                                previd[i] = {
+                                    title: retrieved.title,
+                                    id: retrieved.id,
+                                    thumbnail: videoThumbnail[i],
+                                    url: retrieved.url,
+                                    description: retrieved.description
+                                }
+                            }
+                            m.edit('Retrieving data from server...');
+                        } catch (e) {
+                            m.edit('Provided search term fails to return any videos.')
+                            .then(() => {throw e;});
+                        }
                     }
-                }
 
-                let videoThumbnail;
-                let pool = Object.keys(link.thumbnails);
-                if(pool.indexOf('maxres') > -1) {videoThumbnail = link.thumbnails.maxres.url}
-                else if(pool.indexOf('high') > -1) {videoThumbnail = link.thumbnails.high.url}
-                else if(pool.indexOf('medium') > -1) {videoThumbnail = link.thumbnails.medium.url}
-                else if(pool.indexOf('standard') > -1) {videoThumbnail = link.thumbnails.standard.url}
-                else {videoThumbnail = link.thumbnails.default.url;}
-                plLink.data.push({
-                    title: link.title,
-                    id: link.id,
-                    thumbnail: videoThumbnail,
-                    url: link.url
+                    let index = 0;
+                    let videoSelectEmbed = new Discord.MessageEmbed()
+                    .setTitle(`[${index+1} of ${previd.length}] ${previd[index].title}`)
+                    .setDescription(previd[index].description)
+                    .setImage(previd[index].thumbnail);
+
+                    m.edit({embed: videoSelectEmbed})
+                    .then(() => {
+                        if(!queue.get(`${msg.guild.id}.${msg.author.id}`))
+                            queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
+                        let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
+                        let filterReact = (reaction, user) => {
+                            return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢' || reaction.emoji.name == '🔴') && user.id == static;
+                        }
+
+                        m.react('◀')
+                        .then(() => {m.react('▶')})
+                        .then(() => {m.react('🟢')})
+                        .then(() => {m.react('🔴')});
+                        let data = m.createReactionCollector(filterReact);
+                        data.on('collect', (react, user) => {
+                            let newVideoSelectEmbed = new Discord.MessageEmbed(videoSelectEmbed);
+
+                            switch(react.emoji.name) {
+                                case('◀'): {
+                                    index--;
+                                    if(index < 0) index = 0;
+                                    newVideoSelectEmbed
+                                    .setTitle(`[${index+1} of ${previd.length}] ${previd[index].title}`)
+                                    .setDescription(previd[index].description)
+                                    .setImage(previd[index].thumbnail);
+                                } break;
+                                case('▶'): {
+                                    index++;
+                                    if(index >= previd.length) index = previd.length - 1;
+                                    newVideoSelectEmbed
+                                    .setTitle(`[${index+1} of ${previd.length}] ${previd[index].title}`)
+                                    .setDescription(previd[index].description)
+                                    .setImage(previd[index].thumbnail);
+                                } break;
+                                case('🟢'): {
+                                    plLink.data.push({
+                                        title: previd[index].title,
+                                        id: previd[index].id,
+                                        thumbnail: previd[index].thumbnail,
+                                        url: previd[index].url
+                                    });
+
+                                    fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
+                                    return data.stop();
+                                } //break;
+                                case('🔴'): {
+                                    m.edit('No changes were made.');
+                                    return data.stop();
+                                } //break;
+                            }
+                            m.edit({embed: newVideoSelectEmbed})
+                            .then(async () => {
+                                const collection = m.reactions.cache.filter(r => r.users.cache.has(static));
+                                try {
+                                    for(const r of collection.values())
+                                    await r.users.remove(static);
+                                } catch(e) {
+                                    if(e) throw e;
+                                }
+                            });
+                        });
+                        data.on('end', () => {
+                            let finalEmbed = new Discord.MessageEmbed(videoSelectEmbed)
+                            .setTitle(`Added to Playlist: ${previd[index].title}`)
+                            .setDescription(previd[index].description)
+                            .setImage(previd[index].thumbnail)
+
+                            m.edit({embed: finalEmbed})
+                            .then(() => {
+                                m.reactions.removeAll();
+                                queue.delete(`${msg.guild.id}.${msg.author.id}`);
+                            });
+                        });
+                    });
                 });
-
-                fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
-                return msg.channel.send(`Music **${link.title}** has been added to playlist **${selection}**`);
-            }
+            } break;
 
             case('delete'): {
-                if(args.length <= 1) return msg.channel.send('Please specify a playlist name to delete.\n`/playlist delete <Playlist Name>`');
+                if(!selection) return msg.channel.send('Please specify a playlist name to delete.\n`//playlist delete <Playlist Name>`');
                 let plLinkDelete = pl.find(n => n.name == selection);
                 let plName = plLinkDelete.name;
                 if(!plLinkDelete) return msg.channel.send(`Playlist **${plName}** doesn't exist.`);
                 pl.splice(pl.findIndex(key => key.name == selection), 1);
                 fs.writeFileSync(`./data/playlist/${msg.author.id}.json`, JSON.stringify(pl));
                 return msg.channel.send(`Playlist ${plName} has been deleted.`);
-            }
+            } break;
 
             default:
         }

@@ -52,9 +52,6 @@ let player = (msg, song, queue) => {
             throw e;
         });
     })
-    .on('speaking', state => {
-        if(!state) SQ.conn.dispatcher.end();
-    })
     .setVolumeLogarithmic(1);
 }
 
@@ -218,12 +215,13 @@ O.run = async (msg, args, queue) => {
                         queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
                     let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
                     let filterReact = (reaction, user) => {
-                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢') && user.id == static;
+                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢' || reactions.emoji.name == '🔴') && user.id == static;
                     }
 
                     m.react('◀')
                     .then(() => {m.react('▶')})
-                    .then(() => {m.react('🟢')});
+                    .then(() => {m.react('🟢')})
+                    .then(() => {m.react('🔴')});
                     let data = m.createReactionCollector(filterReact);
                     data.on('collect', (react, user) => {
                         let newVideoSelectEmbed = new Discord.MessageEmbed(videoSelectEmbed);
@@ -248,6 +246,10 @@ O.run = async (msg, args, queue) => {
                             case('🟢'): {
                                 stream.push(previd[index]);
                                 handler(msg, stream, queue);
+                                return data.stop();
+                            } //break;
+                            case('🔴'): {
+                                m.edit('No selection were made.');
                                 return data.stop();
                             } //break;
                         }
