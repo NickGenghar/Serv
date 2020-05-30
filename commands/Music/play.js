@@ -215,7 +215,7 @@ O.run = async (msg, args, queue) => {
                         queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
                     let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
                     let filterReact = (reaction, user) => {
-                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢' || reactions.emoji.name == '🔴') && user.id == static;
+                        return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢' || reaction.emoji.name == '🔴') && user.id == static;
                     }
 
                     m.react('◀')
