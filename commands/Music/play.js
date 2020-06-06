@@ -287,9 +287,9 @@ O.run = async (msg, args, queue) => {
             args.shift();
             msg.channel.send('Processing localized playlist...')
             .then(async m => {
-                const playlist = JSON.parse(fs.readFileSync(`./data/playlist/${msg.author.id}.json`)).find(e => e.name == args.join(' ')).data;
+                const playlist = JSON.parse(fs.readFileSync(`./data/playlist/${msg.author.id}.json`)).find(e => e.name == args.join(' '));
                 if(!playlist) return msg.channel.send('Given playlist name does not exist.');
-                for(const v of Object.values(playlist)) {
+                for(const v of Object.values(playlist.data)) {
                     const video = await youtube.getVideoByID(v.id);
 
                     let load = {
