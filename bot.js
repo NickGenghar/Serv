@@ -5,6 +5,8 @@ const integrity = require('./initial/integrity.js');
 const clear = require('./initial/clear.js');
 const reload = require('./initial/reload.js');
 const checksum = require('./initial/checksum.js');
+const state = require('./initial/state.js');
+//const parser = require('./botparser.js');
 
 const defaults = require('./configurations/defaults.json');
 const master = require('./configurations/master.json');
@@ -26,7 +28,9 @@ process.on('unhandledRejection', (e) => {
 });
 
 integrity();
+state();
 clear();
+checksum(bot);
 reload(bot);
 
 if(bot.commands.length <= 0) {
@@ -35,6 +39,9 @@ if(bot.commands.length <= 0) {
 }
 
 bot.login(token);
+
+//Rudimentary implementation, will be refined before commiting.
+//parser(bot);
 
 bot.once('ready', () => {
     checksum(bot);
@@ -390,4 +397,4 @@ bot.on('messageUpdate', (msg1, msg2) => {
         let webhook = a.find(e => e.name.toLowerCase() == 'serv log');
         if(webhook && !msg2.author.bot) webhook.send(messageDeleteEmbed);
     });
-});
+});/**/

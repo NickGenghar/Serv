@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const cert = require.main.require('./configurations/token.json').mysql;
+if(!cert) return;
 
 const db = mysql.createConnection({
     host: 'localhost',

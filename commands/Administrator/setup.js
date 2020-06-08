@@ -69,6 +69,8 @@ module.exports = {
             .addField('Channels Logged', loggedChannel.length > 0 ? loggedChannel : 'No Channel Logged', true)
             .addField('Twitter Channel', twChannel, true)
             .addField('Invite Enforcement', svr.noInvite ? 'Prohibited' : 'Allowed', true)
+            .addField('Bots Invite Enforcement', svr.noInviteBot ? 'Prohibited' : 'Allowed', true)
+            .addField('Link Enforcement', svr.noLink ? 'Prohibited' : 'Allowed', true)
             .setFooter(new Date);
 
             msg.channel.send({embed: setupEmbed});
@@ -110,6 +112,18 @@ module.exports = {
                             svr.noInvite = false;
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send('Invite link is now allowed in this server.');
+                        } break;
+
+                        case('invite-bot'): {
+                            svr.noInviteBot = false;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send('Invite link from bots is now allowed in this server.');
+                        } break;
+
+                        case('link'): {
+                            svr.noLink = false;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send('Link is now allowed in this server.');
                         } break;
 
                         case('tweets'): {
@@ -236,7 +250,19 @@ module.exports = {
                             svr.noInvite = true;
                             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
                             msg.channel.send('Invite link is now prohibited in this server.');
-                        }
+                        } break;
+
+                        case('invite-bot'): {
+                            svr.noInviteBot = true;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send('Invite link from bots is now prohibited in this server.');
+                        } break;
+
+                        case('link'): {
+                            svr.noLink = true;
+                            fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+                            msg.channel.send('Link is now prohibited in this server.');
+                        } break;
 
                         default: return msg.channel.send(`Unknown option: ${M}`);
                     }

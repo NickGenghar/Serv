@@ -9,6 +9,7 @@
         "loggedChan": [],
         "noInvite": true,
         "noInviteBot": true,
+        "noLink": true,
         "reactions": [
             {
                 "msg": "",
