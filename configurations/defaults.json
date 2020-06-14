@@ -5,18 +5,13 @@
         "modules": ["setup","help"],
         "modRole": [],
         "defRole": "",
+        "muteRole": "",
         "logChan": "",
         "loggedChan": [],
         "noInvite": true,
         "noInviteBot": true,
         "noLink": true,
-        "reactions": [
-            {
-                "msg": "",
-                "role": "",
-                "emoji": ""
-            }
-        ],
+        "reactions": [],
         "tweetChan": "",
         "lvlmul": 1,
         "lvlincrementmax": 5,

@@ -15,7 +15,9 @@ const token = require('./configurations/token.json').token;
 const bot = new Discord.Client();
 
 process.on('unhandledRejection', (e) => {
-    bot.guilds.cache.find(e => e.id == master.guild).fetchWebhooks()
+    let home = bot.guilds.cache.find(e => e.id == master.guild);
+    if(!home) return console.log(e);
+    home.fetchWebhooks()
     .then(w => {
         let rejectionEmbed = new Discord.MessageEmbed()
         .setTitle('Unhandled Rejection')
@@ -53,27 +55,33 @@ bot.on('raw', tag => {
     if(tag.t == 'MESSAGE_REACTION_ADD') {
         let svr = JSON.parse(fs.readFileSync(`./data/guilds/${tag.d.guild_id}.json`));
         if(svr.reactions.length > 0) {
-            if(svr.reactions[0].msg == tag.d.message_id && svr.reactions[0].emoji == tag.d.emoji.id) {
+            let payload = svr.reactions.find(v => {return v.msg == tag.d.message_id && v.emoji == tag.d.emoji_id});
+            if(payload) {
                 let guild = bot.guilds.cache.find(i => i.id == tag.d.guild_id);
-                let role = guild.roles.cache.find(i => i.id == svr.reactions[0].role);
+                let role = guild.roles.cache.find(i => i.id == payload.role);
                 let member = guild.members.cache.find(i => i.id == tag.d.user_id);
-                member.roles.add(role)
-                .catch(e => {
-                    if(e) throw e;
-                });
+                if(member.user.bot) {
+                    member.roles.add(role)
+                    .catch(e => {
+                        if(e) throw e;
+                    });
+                }
             }
         }
     } else if(tag.t == 'MESSAGE_REACTION_REMOVE') {
         let svr = JSON.parse(fs.readFileSync(`./data/guilds/${tag.d.guild_id}.json`));
         if(svr.reactions.length > 0) {
-            if(svr.reactions[0].msg == tag.d.message_id && svr.reactions[0].emoji == tag.d.emoji.id) {
+            let payload = svr.reactions.find(v => {return v.msg == tag.d.message_id && v.emoji == tag.d.emoji_id});
+            if(payload) {
                 let guild = bot.guilds.cache.find(i => i.id == tag.d.guild_id);
-                let role = guild.roles.cache.find(i => i.id == svr.reactions[0].role);
+                let role = guild.roles.cache.find(i => i.id == payload.role);
                 let member = guild.members.cache.find(i => i.id == tag.d.user_id);
-                member.roles.remove(role)
-                .catch(e => {
-                    if(e) throw e;
-                });
+                if(member.user.bot) {
+                    member.roles.remove(role)
+                    .catch(e => {
+                        if(e) throw e;
+                    });
+                }
             }
         }
     }
@@ -330,6 +338,13 @@ bot.on('message', async msg => {
 });
 
 bot.on('messageDelete', async msg => {
+    let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
+    let payload = svr.reactions.findIndex(v => {return v.msg == msg.id});
+    if(payload != -1) {
+        svr.reactions.splice(payload, 1);
+        fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
+    }
+
     let guild = bot.guilds.cache.find(e => e.id == msg.guild.id);
     guild.fetchWebhooks()
     .then(a => {
@@ -350,6 +365,14 @@ bot.on('messageDelete', async msg => {
 });
 
 bot.on('messageDeleteBulk', async msgs => {
+    let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msgs.array()[0].guild.id}.json`));
+    let init = svr.reactions.length;
+    msgs.forEach(msg => {
+        let payload = svr.reactions.findIndex(v => {return v.msg == msg.id});
+        if(payload != -1) svr.reactions.splice(payload, 1);
+    });
+    if(init > svr.reactions.length) fs.writeFileSync(`./data/guilds/${msgs.array()[0].guild.id}`);
+
     let guild = bot.guilds.cache.find(e => e.id == msgs.array()[0].guild.id);
     guild.fetchWebhooks()
     .then(a => {

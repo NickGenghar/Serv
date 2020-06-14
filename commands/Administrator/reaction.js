@@ -38,11 +38,11 @@ O.run = async (msg, args, queue) => {
 
     verifyChannel.send(verifyEmbed)
     .then(m => {
-        svr.reactions = [{
+        svr.reactions.push({
             msg: m.id,
             role: verifyRole.id,
             emoji: reactionEmoji.id
-        }]
+        });
         fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
         m.react(reactionEmoji)
         .then(() => {

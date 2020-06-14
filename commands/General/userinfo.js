@@ -5,7 +5,7 @@ const color = require.main.require('./configurations/color.json');
 module.exports = {
     name: 'userinfo',
     alias: ['userinfo', 'user', 'u', 'ui', 'who', 'spy'],
-    desc: 'Get\'s the information of the given user or yourself.',
+    desc: 'Get\'s the information of a given user or yourself.\nNot to be confused with `memberinfo` where it fetches the amount of members in the server.',
     usage: [
         '//userinfo [Username]',
         'Username: Target user. If unspecified, the command gets your user data instead.'
