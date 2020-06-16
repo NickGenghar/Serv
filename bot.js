@@ -33,7 +33,7 @@ integrity();
 state();
 clear();
 checksum(bot);
-reload(bot);
+let errorlist = reload(bot);
 
 if(bot.commands.length <= 0) {
     console.error('\x1b[31m%s\x1b[0m', 'All command subfolders are empty! Cannot proceed without any command modules installed. Exiting...');
@@ -48,7 +48,10 @@ bot.login(token);
 bot.once('ready', () => {
     checksum(bot);
     console.log('\x1b[32m%s\x1b[0m',`${bot.user.username} Ready.`);
-    bot.user.setPresence({activity: {name: '//help', type: 'CUSTOM_STATUS'}, status: 'online'});
+    //bot.user.setPresence({activity: {name: '//help', type: 'LISTENING'}, status: 'online'});
+    if(errorlist.length > 0) {
+        Promise.reject(`The following modules failed to load:\n${errorlist.join('\n')}`);
+    }
 });
 
 bot.on('raw', tag => {
