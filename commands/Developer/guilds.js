@@ -15,9 +15,14 @@ module.exports = {
 
         if(master.includes(msg.author.id)) {
             for(let i = 0; i < guild.length; i++){
-                let invite = await guild[i].fetchInvites();
-                invite = invite.map(a => a.code);
-                if(invite.length <= 0) invite = '`No invites`';
+                let invite;
+                try {
+                    await guild[i].fetchInvites();
+                    invite = invite.map(a => a.code);
+                    if(invite.length <= 0) invite = '```No invites```';
+                } catch(e) {
+                    if(e) invite = '```Unable to resolve invites.```'
+                }
                 guildEmbed.addField(guild[i].name, invite, true);
             }
         } else {
