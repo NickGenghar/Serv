@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const fs = require('fs');
 
 const color = require.main.require('./configurations/color.json');
 
@@ -13,21 +14,19 @@ module.exports = {
     run: async (msg, args) => {
         let User = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
 
-        if(!User) User = msg.author;
-        if(!User.username) User = User.user;
+        if(!User) User = msg.guild.members.cache.get(msg.author.id);
 
         let userinfoEmbed = new Discord.MessageEmbed()
             .setTitle('User Information')
             .setColor(color.purple)
-            .setThumbnail(User.displayAvatarURL({size:2048}))
-            .addField('Client Username', User.username, true)
-            .addField('Client Discriminator', User.discriminator, true)
-            .addField('Client Nickname', User.nickname, true)
-            .addField('Client ID', User.id, true)
+            .setThumbnail(User.user.displayAvatarURL({size:2048}))
+            .addField('Client Username', User.user.username, true)
+            .addField('Client Discriminator', User.user.discriminator, true)
+            .addField('Client Nickname', User.displayName, true)
             .addField('Client Status', User.presence.status, true)
             .addField('Joined Server since', msg.member.joinedAt, true)
-            .addField('Joined Discord since', User.createdAt, true)
-            .addField('Boosted Since', User.premiumSince, true);
+            .addField('Joined Discord since', User.user.createdAt, true)
+            .addField('Boosted Since', User.premiumSince ? User.premiumSince : 'Never', true);
 
         msg.channel.send({embed: userinfoEmbed});
     }
