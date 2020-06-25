@@ -6,9 +6,9 @@ const fs = require('fs');
  * @returns {Array<String>} Returns an array of strings containing the names of modules failed to load.
  */
 module.exports = (bot) => {
-    if(typeof bot.timeout === 'object') bot.timeout.forEach(a => {bot.clearTimeout(a);});
-    if(typeof bot.immediate === 'object') bot.immediate.forEach(a => {bot.clearImmediate(a);});
-    if(typeof bot.interval === 'object') bot.interval.forEach(a => {bot.clearInterval(a);});
+    if(typeof bot.timeout === 'object' && bot.timeout.length > 0) bot.timeout.forEach(a => {bot.clearTimeout(a);});
+    if(typeof bot.immediate === 'object' && bot.immediate.length > 0) bot.immediate.forEach(a => {bot.clearImmediate(a);});
+    if(typeof bot.interval === 'object' && bot.interval.length > 0) bot.interval.forEach(a => {bot.clearInterval(a);});
     bot.timeout = new Object;
     bot.immediate = new Object;
     bot.interval = new Object;
