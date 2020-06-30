@@ -7,23 +7,29 @@ module.exports = {
     alias: ['guilds', 'gg'],
     desc: 'Get bot\'s guild data',
     usage: ['//guilds'],
-    access: 'Developer',
+    dev: true,
+    mod: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args) => {
         let guild = msg.client.guilds.cache.array();
         let guildEmbed = new Discord.MessageEmbed()
-        .setTitle('Serv is Serving in the following servers:');
+        .setTitle(`${msg.client.user.username} is Serving in the following servers:`);
 
         if(master.includes(msg.author.id)) {
-            for(let i = 0; i < guild.length; i++){
+            for(let i of guild){
                 let invite;
                 try {
-                    await guild[i].fetchInvites();
+                    invite = await i.fetchInvites();
                     invite = invite.map(a => a.code);
                     if(invite.length <= 0) invite = '```No invites```';
                 } catch(e) {
                     if(e) invite = '```Unable to resolve invites.```'
                 }
-                guildEmbed.addField(guild[i].name, invite, true);
+                guildEmbed.addField(i.name, invite, true);
             }
         } else {
             guildEmbed.setDescription(`Servers:\n\n${guild.map(i => i.name).join('\n')}`);

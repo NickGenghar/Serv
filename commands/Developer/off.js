@@ -1,17 +1,7 @@
-const fs = require('fs');
+const Discord = require('discord.js');
 
 const master = require.main.require('./configurations/master.json').developer;
-
-let clear = () => {
-    fs.readdir('./temp', (e, f) => {
-        let files = f.filter(e => {if(e.indexOf('.') > -1) return e});
-        files.forEach(g => {
-            fs.unlink(`./temp/${g}`, e => {
-                if(e) return console.log(e);
-            })
-        })
-    })
-}
+const clear = require('../../initial/clear.js');
 
 module.exports = {
     name: 'off',
@@ -20,11 +10,20 @@ module.exports = {
     usage: [
         '//off'
     ],
+    dev: true,
+    mod: false,
+    /**
+     * @param {Discord.Message} msg
+     * @param {Array<String>} [args]
+     */
     run: async (msg, args) => {
         if(!master.includes(msg.author.id)) return;
-        clear();
-        await msg.delete().catch(e => console.log(e));
-        console.log(`\x1b[34m%s\x1b[0m`, 'Shutting down bot...');
-        process.exit(0);
+        msg.delete()
+        .then(() => {
+            console.log(`\x1b[34m%s\x1b[0m`, 'Shutting down bot...');
+            clear();
+            process.exit(0);
+        })
+        .catch(e => {if(e) throw e;});
     }
 }
