@@ -48,7 +48,7 @@ module.exports = {
         }
     
         if(args[0] && args[0].toLowerCase() == 'log') {
-            svr.logChan = logChannel;
+            svr.logChan = logChannel.id;
             fs.writeFileSync(`./data/guilds/${msg.guild.id}.json`, JSON.stringify(svr));
             return msg.channel.send(`Set ${logChannel} as the primary logging channel.`);
         }

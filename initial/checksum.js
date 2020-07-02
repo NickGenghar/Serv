@@ -15,4 +15,10 @@ module.exports = (bot) => {
             console.log('\x1b[36m%s\x1b[0m',`Server data for the server [${a}] available.`);
         }
     });
+    available.forEach(g => {
+        if(!guilds.includes(g.split('.').shift())) {
+            console.log('\x1b[31m%s\x1b[0m',`Redundant server data [${g}] deleted.`);
+            fs.unlinkSync(`./data/guilds/${g}`);
+        }
+    });
 }
