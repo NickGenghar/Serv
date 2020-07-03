@@ -1,0 +1,25 @@
+const Discord = require('discord.js');
+const fs = require('fs');
+
+module.exports = {
+    event: 'guildBanAdd',
+    /**
+     * @param {Discord.Client} bot
+     * @param {Discord.Guild} guild
+     * @param {Discord.User} user
+     */
+    run: async (bot, guild, user) => {
+        const svr = JSON.parse(fs.readFileSync(`./data/guilds/${guild.id}.json`));
+        if(svr.logChan == '') return;
+
+        let banAddEmbed = new Discord.MessageEmbed()
+        .setTitle('Guild Ban Add')
+        .setThumbnail(user.avatarURL())
+        .addField('User', user.username, true)
+        .addField('Bot?', user.bot ? 'Yes' : 'No', true)
+        .setFooter(`Ban received at ${new Date()}`);
+
+        let logChannel = guild.channels.cache.find(e => e.id == svr.logChan);
+        if(logChannel) logChannel.send(banAddEmbed);
+    }
+}

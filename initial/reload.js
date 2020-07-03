@@ -3,7 +3,7 @@ const fs = require('fs');
 
 /**
  * @param {Object} bot The Discord Client object.
- * @returns {Array<String>} Returns an array of strings containing the names of modules failed to load.
+ * @returns {void}
  */
 module.exports = (bot) => {
     if(typeof bot.timeout === 'object' && bot.timeout.length > 0) bot.timeout.forEach(a => {bot.clearTimeout(a);});
@@ -70,6 +70,6 @@ module.exports = (bot) => {
     }
 
     if(componentIssue.length > 0)
-    console.log(`\x1b[33m%s\x1b[0m`, 'Some modules returns an issue flag. Check the logs to see what module causing it.');
-    return componentIssue;
+    Promise.reject(`The following modules failed to load:\n${componentIssue.join('\n')}`);
+    return;
 }
