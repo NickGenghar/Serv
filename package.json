@@ -20,6 +20,7 @@
     "@discordjs/opus": "^0.3.2",
     "archiver": "^4.0.1",
     "discord.js": "^12.2.0",
+    "libsodium-wrappers": "^0.7.6",
     "mysql": "^2.18.1",
     "opusscript": "0.0.7",
     "random-org-http": "0.0.8",
