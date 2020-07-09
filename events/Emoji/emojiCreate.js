@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
-    event: 'emojiDelete',
+    event: 'emojiCreate',
     /**
      * @param {Discord.Client} bot
      * @param {Discord.GuildEmoji} emoji
