@@ -23,7 +23,8 @@
         "guilds",
         "levels",
         "playlist",
-        "users"
+        "users",
+        "timer"
     ],
     "replyPool": [
         "Here's your item as requested.",

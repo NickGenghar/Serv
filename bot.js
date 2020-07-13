@@ -1,5 +1,4 @@
 const Discord = require('discord.js');
-const fs = require('fs');
 
 const integrity = require('./initial/integrity.js');
 const clear = require('./initial/clear.js');
@@ -8,7 +7,6 @@ const state = require('./initial/state.js');
 const events = require('./initial/events.js');
 const parser = require('./initial/parser.js');
 
-const defaults = require('./configurations/defaults.json');
 const master = require('./configurations/master.json');
 const token = require('./configurations/token.json').token;
 

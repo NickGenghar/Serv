@@ -10,6 +10,7 @@ module.exports = {
     usage: [],
     dev: false,
     mod: false,
+    activate: true,
     /**
      * @param {Discord.Message} msg The Discord.Message() object.
      * @param {Array<String>} [args] The argument.
