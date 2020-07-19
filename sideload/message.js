@@ -7,9 +7,9 @@ const queue = new Map();
 
 module.exports = {
     task: 'message',
-    run: async msg => {
-        if(msg.channel.type == 'dm') return;
-        let svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
+    run: async (msg, svr) => {
+        if(msg.channel.type == 'dm' || msg.author.bot) return;
+
         let prefix = svr.prefix || defaults.prefix;
 
         if(svr.noInvite && msg.content.match(/(.*)discord.gg(.*)/)) {
@@ -30,7 +30,7 @@ module.exports = {
 
         if(msg.mentions.users.first() == msg.client.user) return msg.channel.send(`My prefix is \`${prefix}\`.`);
 
-        var args = msg.content.split(/ +/);
+        var args = msg.content.split(/ +|"(.*?)"|'(.*?)'/g).filter(v => {if(typeof v != 'undefined' || v != '') return v;});
         var coms = args.shift();
 
         if(coms.indexOf(prefix) == 0) coms = coms.slice(prefix.length);
