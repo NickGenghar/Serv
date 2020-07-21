@@ -33,7 +33,7 @@ module.exports = {
         var args = msg.content.split(/ +|"(.*?)"|'(.*?)'/g).filter(v => {if(typeof v != 'undefined' || v != '') return v;});
         var coms = args.shift();
 
-        if(coms.indexOf(prefix) == 0) coms = coms.slice(prefix.length);
+        if(coms && coms.indexOf(prefix) == 0) coms = coms.slice(prefix.length);
         else return;
 
         var execute = msg.client.commands.get(coms) || msg.client.commands.find(a => a.alias && a.alias.includes(coms));
