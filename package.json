@@ -18,14 +18,14 @@
   "homepage": "https://github.com/NickGenghar/Serv#readme",
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
-    "archiver": "^4.0.1",
     "discord.js": "^12.2.0",
+    "got": "^11.5.1",
     "libsodium-wrappers": "^0.7.6",
     "mysql": "^2.18.1",
     "opusscript": "0.0.7",
     "random-org-http": "0.0.8",
-    "request": "^2.88.2",
     "simple-youtube-api": "^5.2.1",
+    "tmi.js": "^1.5.0",
     "twit": "^2.2.11",
     "ytdl-core": "^2.1.5",
     "ytsr": "^0.1.15"
