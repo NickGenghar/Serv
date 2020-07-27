@@ -36,13 +36,17 @@ module.exports = {
                     else if(pool.indexOf('standard') > -1) {videoThumbnail = i.thumbnails.standard.url;}
                     else {videoThumbnail = i.thumbnails.default.url;}
 
+                    let duration = [0,0,i.durationSeconds];
+                    if(duration[2] > 60) {duration[1] = Math.floor(duration[2]/60); duration[2] %= 60;}
+                    if(duration[1] > 60) {duration[0] = Math.floor(duration[1]/60); duration[1] %= 60;}
+
                     if(i.description.length > 1000) retrieved.description = retrieved.description.slice(0, 999).concat('...');
                     contentInfo.push({
                         url: i.url,
                         title: i.title,
                         channel: i.channel.title,
                         description: i.description,
-                        duration: i.durationSeconds,
+                        duration: i.durationSeconds >= 0 ? duration.join(':') : 'Unable to resolve duration.',
                         id: i.id,
                         thumbnail: videoThumbnail
                     });
@@ -58,7 +62,7 @@ module.exports = {
             .setDescription(`[${contentInfo[index].title}](${contentInfo[index].url})`)
             .setImage(contentInfo[index].thumbnail)
             .setDescription(contentInfo[index].description)
-            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${new Date(contentInfo[index].duration*1000).toTimeString()}`);
+            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${contentInfo[index].duration}`);
 
             m.edit({embed: videoEmbed})
             .then(() => {
