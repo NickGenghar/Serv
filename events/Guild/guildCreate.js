@@ -34,7 +34,7 @@ module.exports = {
         if(bot.timeout[guild.id]) {
             bot.clearTimeout(bot.timeout[guild.id]);
         } else {
-            fs.writeFile(`./data/guilds/${guild.id}.json`, defaults.server_config, (e) => {
+            fs.writeFile(`./data/guilds/${guild.id}.json`, JSON.stringify(defaults.server_config, null, '\t'), (e) => {
                 if(e) console.log('Encountered error while creating new server data.');
             });
         }
