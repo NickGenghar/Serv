@@ -1,28 +1,27 @@
+const Discord = require('discord.js');
 const fs = require('fs');
 
-O = new Object;
+module.exports = {
+    name: 'invert',
+    alias: ['invert', 'mirror', 'in'],
+    desc: 'Invert your text',
+    usage: [
+        '//Invert <Text>',
+        'Text: Text to invert.'
+    ],
+    dev: false,
+    mod: false,
+    activate: true,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
+        const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
+        if(!svr.modules.includes(module.exports.name)) return msg.channel.send('This module is not activated. Please activate it via the `setup` command.');
 
-O.name = 'invert';
-O.alias = ['invert', 'mirror', 'in'];
-O.desc = 'Invert your text';
-O.usage = [
-    '//Invert <Text>',
-    'Text: Text to invert.'
-];
-O.run = async (msg, args, queue) => {
-    const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
-    if(!svr.modules.includes(O.name)) return msg.channel.send('This module is not activated. Please activate it via the `setup` command.');
-
-    msg.delete().catch(e => console.log(e));
-    let straigh = args.join(' ').split('');
-    let inverted = [];
-    let i = straigh.length, j = 0;
-
-    while(i--) {
-        inverted[j++] = straigh[i];
+        msg.delete().catch(e => console.log(e));
+        msg.channel.send([...args.join(' ')].reverse().join(''));
     }
-
-    msg.channel.send(inverted.join(''));
 }
-
-module.exports = O;

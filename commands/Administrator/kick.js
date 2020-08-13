@@ -7,8 +7,20 @@ module.exports = {
     name: 'kick',
     alias: ['k', 'kick'],
     desc: 'Kicks a user out from the server.',
-    usage: ['//kick <user> <reason>\nuser: Target user to be kicked,\nreason: Reason for being kick.\n\nReason must be provided in order for this command to succeed.'],
-    run: async (msg, args) => {
+    usage: [
+        '//kick <user> <reason>',
+        'user: Target user to be kicked,',
+        'reason: Reason for being kick.',
+    ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');

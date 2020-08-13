@@ -29,6 +29,14 @@ module.exports = {
         '',
         'Note: Once a moderator role is set, members are required to have that role in order to use commands that requires it.'
     ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args) => {
         var svr;
         var setupEmbed = new Discord.MessageEmbed();

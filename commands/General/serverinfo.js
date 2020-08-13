@@ -1,17 +1,24 @@
 const Discord = require('discord.js');
 
-const color = require.main.require('./configurations/color.json');
+const colors = require.main.require('./configurations/color.json');
 
 module.exports = {
     name: 'serverinfo',
-    alias: ['si', 'serverinfo', 'guild', 'pool', 'coolkids'],
-    desc: 'Gets the information of the server/guild.',
+    alias: [module.exports.name, 'si'],
+    desc: 'Get\'s the information of the server/guild.',
     usage: '//serverinfo',
-    access: 'Members',
-    run: async (msg) => {
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         let serverinfoEmbed = new Discord.MessageEmbed()
             .setTitle('Server Information')
-            .setColor(color.purple)
+            .setColor(colors.purple)
             .setThumbnail(msg.guild.iconURL)
             .addField('Server Owner', msg.guild.owner, true)
             .addField('Server Name', msg.guild.name, true)

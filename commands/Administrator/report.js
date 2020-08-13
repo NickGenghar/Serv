@@ -7,8 +7,22 @@ module.exports = {
 	name: 'report',
     alias: ['report'],
     desc: 'Report a user.',
-    usage: ['//report <user> <reason>\nuser: Target user to  be reported,\nreason: Reason why they got reported.\n\n Reason must be provided in order for this command to succeed.'],
-    run: async (msg, args) => {
+    usage: [
+        '//report <user> <reason>',
+        'user: Target user to  be reported,',
+        'reason: Reason why they got reported.',
+        '',
+        ' Reason must be provided in order for this command to succeed.'
+    ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');

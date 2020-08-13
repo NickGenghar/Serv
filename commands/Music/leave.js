@@ -1,12 +1,22 @@
+const Discord = require('discord.js');
+
 module.exports = {
     name: 'leave',
-    alias: ['leave', 't', 'stop'],
+    alias: [module.exports.name, 't', 'stop'],
     desc: 'Leaves the voice channel',
     usage: ['leave'],
-    run: async (msg, args, queue) => {
-        let SQ = queue.get(`${msg.guild.id}.music`);
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
+        let SQ = col.get(`${msg.guild.id}.music`);
         if(SQ) {
-            queue.delete(`${msg.guild.id}.music`);
+            col.delete(`${msg.guild.id}.music`);
             msg.channel.send('Queue data has been cleared.');
         }
 

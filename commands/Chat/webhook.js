@@ -99,6 +99,14 @@ module.exports = {
         'Webhook Name: The name of the webhook you want to create.',
         'Webhook Name: The name of the webhook if it exist in the server.'
     ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args, queue) => {
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');

@@ -7,8 +7,20 @@ module.exports = {
     name: 'unban',
     alias: ['ub', 'unban', 'pardon'],
     desc: 'Unban a banned user in the server',
-    usage: ['//unban <userID> <reason>\nuserID: Target user ID to be unbanned,\nreason: Reason for why they got unbanned.\n\nReason must be provided in order for this command to succeed.'],
-    run: async (msg, args) => {
+    usage: [
+        '//unban <userID> <reason>',
+        'userID: Target user ID to be unbanned,',
+        'reason: Reason for why they got unbanned.'
+    ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');
         if(!msg.guild.member(msg.author).roles.cache.find(r => svr.modRole.includes(r.id))) return msg.channel.send('You do not have the required moderation role.');

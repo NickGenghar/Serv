@@ -20,6 +20,14 @@ module.exports = {
     alias: ['level','lvl','rank'],
     desc: 'Level system in the server. Requires configuration to set this module active before using.',
     usage: [],
+    dev: false,
+    mod: true,
+    activate: true,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args) => {
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(!svr.modules.includes('level')) return;

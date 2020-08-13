@@ -7,8 +7,20 @@ module.exports = {
     name: 'softban',
     alias: ['sb', 'sban', 'softban'],
     desc: 'Ban a user out from the server, then unban them soon after.',
-    usage: ['//softban <user> <reason>\nuser: Target user to be soft banned,\nreason: Reason why they got soft banned.\n\nReason must be provided in order for this command to succeed.'],
-    run: async (msg, args) => {
+    usage: [
+        '//softban <user> <reason>',
+        'user: Target user to be soft banned,',
+        'reason: Reason why they got soft banned.',
+    ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         msg.delete().catch(console.error)
         const svr = JSON.parse(fs.readFileSync(`./data/guilds/${msg.guild.id}.json`));
         if(svr.modRole.length <= 0) return msg.channel.send('No Moderator Role Set.');

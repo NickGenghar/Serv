@@ -27,6 +27,37 @@
         "users",
         "timer"
     ],
+    "command_structure": [
+        "name",
+        "alias",
+        "desc",
+        "usage",
+        "dev",
+        "mod",
+        "activate",
+        "run"
+    ],
+    "configs": {
+        "master": {
+            "developer": [],
+            "guild": "",
+            "webhook": ""
+        },
+        "token": {
+            "token": "",
+            "ytkey": "",
+            "twkey": {
+                "consumer": "",
+                "consumer_secret": "",
+                "access_token": "",
+                "access_token_secret": ""
+            },
+            "mysql": {
+                "user": "",
+                "password": ""
+            }
+        }
+    },
     "replyPool": [
         "Here's your item as requested.",
         "I could help you with that.",

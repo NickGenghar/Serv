@@ -1,6 +1,6 @@
 module.exports = {
     name: 'seed',
-    alias: ['seed'],
+    alias: [module.exports.name],
     desc: 'Generates or encode Minecraft seeds',
     usage: [
         '//seed {Generate | Encode} <Input Seed>',
@@ -8,6 +8,14 @@ module.exports = {
         'Encode: Encodes a given text into a seed.',
         'Input: Input for Encoding seed.'
     ],
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args) => {
         switch (args[0]) {
             case 'generate':

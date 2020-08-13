@@ -14,7 +14,7 @@ var twitterClient = new Twit({
 
 module.exports = {
     name: 'twitter',
-    alias: ['twitter', 'tweet'],
+    alias: [module.exports.name, 'tweet'],
     desc: 'Stream data from user.',
     usage: [
         '//tweet <Stream> <Follow> <User>',
@@ -34,6 +34,14 @@ module.exports = {
         '',
         'Tweet and Tweet content: Only for Nick Genghar, not much else to tell you..'
     ],
+    dev: false,
+    mod: true,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args, queue) => {
         if(master.includes(msg.author.id) && args[0] == 'tweet') {
             args.shift();

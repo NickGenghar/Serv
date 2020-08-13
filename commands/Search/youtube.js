@@ -16,6 +16,7 @@ module.exports = {
     ],
     dev: false,
     mod: false,
+    activate: false,
     /**
      * @param {Discord.Message} msg The Discord.Message() object.
      * @param {Array<String>} [args] The argument.
@@ -58,11 +59,11 @@ module.exports = {
 
             let index = 0;
             let videoEmbed = new Discord.MessageEmbed()
-            .setTitle(contentInfo[index].channel)
-            .setDescription(`[${contentInfo[index].title}](${contentInfo[index].url})`)
+            .setTitle(`${contentInfo[index].channel}\n${contentInfo[index].title}`)
             .setImage(contentInfo[index].thumbnail)
             .setDescription(contentInfo[index].description)
-            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${contentInfo[index].duration}`);
+            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${contentInfo[index].duration}`)
+            .setURL(contentInfo[index].url);
 
             m.edit({embed: videoEmbed})
             .then(() => {
@@ -88,22 +89,22 @@ module.exports = {
                             if(index < 0) index = 0;
 
                             newVideoEmbed
-                            .setTitle(contentInfo[index].channel)
-                            .setDescription(`[${contentInfo[index].title}](${contentInfo[index].url})`)
+                            .setTitle(`${contentInfo[index].channel}\n${contentInfo[index].title}`)
                             .setImage(contentInfo[index].thumbnail)
                             .setDescription(contentInfo[index].description)
-                            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${new Date(contentInfo[index].duration*1000).toTimeString()}`);
+                            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${contentInfo[index].duration}`)
+                            .setURL(contentInfo[index].url);
                         } break;
                         case('▶'): {
                             index++;
                             if(index >= contentInfo.length) index = contentInfo.length - 1;
 
                             newVideoEmbed
-                            .setTitle(contentInfo[index].channel)
-                            .setDescription(`[${contentInfo[index].title}](${contentInfo[index].url})`)
+                            .setTitle(`${contentInfo[index].channel}\n${contentInfo[index].title}`)
                             .setImage(contentInfo[index].thumbnail)
                             .setDescription(contentInfo[index].description)
-                            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${new Date(contentInfo[index].duration*1000).toTimeString()}`);
+                            .setFooter(`${index+1} of ${contentInfo.length}, Duration: ${contentInfo[index].duration}`)
+                            .setURL(contentInfo[index].url);
                         } break;
                         case('🟢'): {
                             returnvalue = contentInfo[index].url;

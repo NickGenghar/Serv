@@ -1,6 +1,8 @@
+const Discord = require('discord.js');
+
 module.exports = {
     name: 'loop',
-    alias: ['loop', 'l'],
+    alias: [module.exports.name, 'l'],
     desc: 'Loop the playback',
     usage: [
         '//loop ["this"]',
@@ -8,8 +10,16 @@ module.exports = {
         '"this": Toggle the option to loop current song.',
         'Without the `this` keyword, the command will toggle between loop all and loop off.'
     ],
-    run: async (msg, args , queue) => {
-        let SQ = queue.get(`${msg.guild.id}.music`);
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
+        let SQ = col.get(`${msg.guild.id}.music`);
 
         if(!SQ) return;
         if(SQ.loop) {

@@ -2,19 +2,24 @@ const Discord = require('discord.js');
 
 module.exports = {
     name: 'invite',
-    alias: ['invite', 'i'],
-    desc: 'Invites the bot',
+    alias: [module.exports.name, 'i'],
+    desc: 'Checks your invite link status of the server.',
     usage: ['//invite'],
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args) => {
         let member = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
         if(!member) member = msg.author;
         if(!member.username) member = member.user;
 
         let invites = await msg.guild.fetchInvites();
-        if(!invites) {}
-        else {
-            invites = invites.filter(i => i.inviter.id == member.id);
-        }
+        if(invites) invites = invites.filter(i => i.inviter.id == member.id);
 
         let inviteEmbed = new Discord.MessageEmbed()
         .setTitle('Your Invites')

@@ -1,7 +1,7 @@
 module.exports = {
     name: 'math',
-    alias: ['calc', 'math', 'compute'],
-    desc: 'Do simple math...',
+    alias: [module.exports.name],
+    desc: 'Perform a mathematical operation on the given input.',
     usage: [
         '//math <Operant>',
         '//math <Operant with X> <Value of X>',
@@ -11,6 +11,14 @@ module.exports = {
         'Operant with X: Simple arithmetic calculations with X as a variable (1+x, 2\*x, 3-x, 4/x)',
         'Value of X: The value of x to be substitute.'
     ],
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
     run: async (msg, args) => {
         var compute = (iterator, iteration) => {
             if (iteration.includes('x') && iterator != NaN) {

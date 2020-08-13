@@ -1,6 +1,6 @@
 module.exports = {
     name: 'base',
-    alias: ['base'],
+    alias: [module.exports.name],
     desc: 'Convert the base number supplied to a different base',
     usage: [
         '//base <Input Value> <Input Base> <Output Base>',
@@ -10,7 +10,15 @@ module.exports = {
         '',
         'Please input the correct Input Base of the Input Value to avoid inaccurate conversion.'
     ],
-    run: async (msg, args) => {
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         const hex = [0,1,2,3,4,5,6,7,8,9,'A','B','C','D','E','F'];
         let numeric = args[0], base = args[1], convert = args[2];
         let div, mul, final = [];

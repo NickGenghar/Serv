@@ -1,8 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const master = require.main.require('./configurations/master.json');
-
 module.exports = {
     name: 'profanity',
     alias: [module.exports.name, 'badword'],

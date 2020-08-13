@@ -1,6 +1,9 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
+const keyCompare = require('../functions/keyCompare');
+const defaults = require('../configurations/defaults.json');
+
 /**
  * @param {Object} bot The Discord Client object.
  * @returns {void}
@@ -45,12 +48,15 @@ module.exports = (bot) => {
                     try {
                         delete require.cache[require.resolve(`../commands/${subFolder}/${files}`)];
                         let pull = require(`../commands/${subFolder}/${files}`);
-                        if(pull.name != '' && pull.alias.length >= 1 && typeof pull.run === 'function') {
+                        if(keyCompare(defaults.command_structure, pull) && pull.name != '' && pull.alias.length >= 1 && typeof pull.run === 'function') {
                             command[index] = {
                                 name: pull.name,
                                 alias: pull.alias,
                                 desc: pull.desc,
                                 usage: pull.usage,
+                                dev: pull.dev,
+                                mod: pull.mod,
+                                activate: pull.activate,
                                 run: pull.run,
                                 type: subFolder
                             }

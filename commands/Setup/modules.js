@@ -18,7 +18,7 @@ module.exports = {
         'Module: The name of the module to deactivate.'
     ],
     dev: false,
-    mod: false,
+    mod: true,
     activate: false,
     /**
      * @param {Discord.Message} msg The Discord.Message() object.

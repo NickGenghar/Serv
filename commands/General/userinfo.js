@@ -1,24 +1,31 @@
 const Discord = require('discord.js');
-const fs = require('fs');
 
-const color = require.main.require('./configurations/color.json');
+const colors = require.main.require('./configurations/color.json');
 
 module.exports = {
     name: 'userinfo',
-    alias: ['userinfo', 'user', 'u', 'ui', 'who', 'spy'],
+    alias: [module.exports.name, 'user', 'u', 'ui', 'who', 'spy'],
     desc: 'Get\'s the information of a given user or yourself.\nNot to be confused with `memberinfo` where it fetches the amount of members in the server.',
     usage: [
         '//userinfo [Username]',
         'Username: Target user. If unspecified, the command gets your user data instead.'
     ],
-    run: async (msg, args) => {
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         let User = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
 
         if(!User) User = msg.guild.members.cache.get(msg.author.id);
 
         let userinfoEmbed = new Discord.MessageEmbed()
             .setTitle('User Information')
-            .setColor(color.purple)
+            .setColor(colors.purple)
             .setThumbnail(User.user.displayAvatarURL({size:2048}))
             .addField('Client Username', User.user.username, true)
             .addField('Client Discriminator', User.user.discriminator, true)

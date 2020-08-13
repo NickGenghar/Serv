@@ -1,16 +1,33 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const ytdl = require('ytdl-core');
 const YT = require('simple-youtube-api');
 
 const color = require.main.require('./configurations/color.json');
-const key = require.main.require('./configurations/token.json').ytkey;
-
-const youtube = new YT(key);
+const token = require.main.require('./configurations/token.json');
+if(!token.ytkey) {
+    return module.exports = {
+        name: 'playlist',
+        alias: [module.exports.name, 'pl'],
+        desc: 'Play a locally stored playlist of yours.',
+        usage: ['This module is disabled due to incomplete data.'],
+        dev: false,
+        mod: false,
+        activate: false,
+        /**
+         * @param {Discord.Message} msg The Discord.Message() object.
+         * @param {Array<String>} [args] The argument.
+         * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+         */
+        run: async (msg, args, col) => {
+            return msg.channel.send('Sorry, this module is disabled due to incomplete data. Please contact the developer in regards to this issue.');
+        }
+    }
+}
+const youtube = new YT(token.ytkey);
 
 module.exports = {
     name: 'playlist',
-    alias: ['playlist', 'pl'],
+    alias: [module.exports.name, 'pl'],
     desc: [
         'Play a locally stored playlist of yours',
         'Limitations:',
@@ -22,7 +39,15 @@ module.exports = {
         'Selection: Playlist name',
         'Data: Link or search term to video.'
     ],
-    run: async (msg, args, queue) => {
+    dev: false,
+    mod: false,
+    activate: false,
+    /**
+     * @param {Discord.Message} msg The Discord.Message() object.
+     * @param {Array<String>} [args] The argument.
+     * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
+     */
+    run: async (msg, args, col) => {
         let pl;
 
         try {
@@ -63,11 +88,11 @@ module.exports = {
 
             case('list'): {
                 if(!selection) return msg.channel.send('Please specify a playlist name to list.\n`//playlist list <Playlist Name>`');
-                if(!queue.get(`${msg.guild.id}.${msg.author.id}`)) {
-                    queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
+                if(!col.get(`${msg.guild.id}.${msg.author.id}`)) {
+                    col.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
                 }
 
-                let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
+                let static = col.get(`${msg.guild.id}.${msg.author.id}`);
 
                 let plInfo = pl.find(n => n.name == selection);
                 if(plInfo) {
@@ -138,7 +163,7 @@ module.exports = {
                             m.edit({embed: finalEmbed})
                             .then(i => {
                                 i.reactions.removeAll()
-                                queue.delete(`${msg.guild.id}.${msg.author.id}`);
+                                col.delete(`${msg.guild.id}.${msg.author.id}`);
                             });
                         });
                     });
@@ -212,9 +237,9 @@ module.exports = {
 
                     m.edit({embed: videoSelectEmbed})
                     .then(() => {
-                        if(!queue.get(`${msg.guild.id}.${msg.author.id}`))
-                            queue.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
-                        let static = queue.get(`${msg.guild.id}.${msg.author.id}`);
+                        if(!col.get(`${msg.guild.id}.${msg.author.id}`))
+                            col.set(`${msg.guild.id}.${msg.author.id}`, msg.author.id);
+                        let static = col.get(`${msg.guild.id}.${msg.author.id}`);
                         let filterReact = (reaction, user) => {
                             return (reaction.emoji.name == '◀' || reaction.emoji.name == '▶' || reaction.emoji.name == '🟢' || reaction.emoji.name == '🔴') && user.id == static;
                         }
@@ -280,7 +305,7 @@ module.exports = {
                             m.edit({embed: finalEmbed})
                             .then(() => {
                                 m.reactions.removeAll();
-                                queue.delete(`${msg.guild.id}.${msg.author.id}`);
+                                col.delete(`${msg.guild.id}.${msg.author.id}`);
                             });
                         });
                     });

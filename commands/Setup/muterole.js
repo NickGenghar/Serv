@@ -1,8 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const master = require.main.require('./configurations/master.json');
-
 module.exports = {
     name: 'muterole',
     alias: [module.exports.name, 'mr'],
@@ -20,6 +18,7 @@ module.exports = {
     ],
     dev: false,
     mod: true,
+    activate: false,
     /**
      * @param {Discord.Message} msg The Discord.Message() object.
      * @param {Array<String>} [args] The argument.

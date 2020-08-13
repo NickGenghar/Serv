@@ -1,6 +1,6 @@
 {
   "name": "serv",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Your Average Server Bot design to Serv you",
   "main": "bot.js",
   "scripts": {

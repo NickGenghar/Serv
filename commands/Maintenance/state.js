@@ -1,5 +1,4 @@
 const Discord = require('discord.js');
-const fs = require('fs');
 const state = require('../../initial/state.js');
 
 const master = require.main.require('./configurations/master.json');
