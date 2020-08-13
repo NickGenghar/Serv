@@ -25,7 +25,7 @@ if(!token.ytkey) {
     }
 }
 
-const youtube = new YouTube(token);
+const youtube = new YouTube(token.ytkey);
 
 /**
  * 
