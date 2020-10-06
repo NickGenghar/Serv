@@ -6,11 +6,16 @@ const reload = require('./initial/reload.js');
 const state = require('./initial/state.js');
 const events = require('./initial/events.js');
 const parser = require('./initial/parser.js');
+const bots = require('./initial/bots.js');
 
 const master = require('./configurations/master.json');
-const token = require('./configurations/token.json').token;
 
-const bot = new Discord.Client();
+integrity.local();
+state();
+clear();
+
+const bot = bots.discord();
+//const twitch = bots.twitch();
 
 process.on('unhandledRejection', (e) => {
     let home = bot.guilds.cache.find(e => e.id == master.guild);
@@ -27,11 +32,6 @@ process.on('unhandledRejection', (e) => {
     console.log(e);
 });
 
-integrity();
-state();
-clear();
 reload(bot);
 events(bot);
-
-bot.login(token);
 parser(bot);

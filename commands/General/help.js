@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const master = require('../../configurations/master.json');
+const fs = require('fs');
 
 module.exports = {
     name: 'help',
