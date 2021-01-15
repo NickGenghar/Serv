@@ -1,21 +1,21 @@
 {
   "name": "serv",
   "version": "2.1.0",
-  "description": "Your Average Server Bot design to Serv you",
+  "description": "(OUTDATED) Your Average Server Bot design to Serv you",
   "main": "bot.js",
   "scripts": {
     "execute": "node bot.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NickGenghar/Serv.git"
+    "url": "git+https://github.com/NickGenghar/Serv_Old.git"
   },
   "author": "Nick Genghar",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/NickGenghar/Serv/issues"
+    "url": "https://github.com/NickGenghar/Serv_Old/issues"
   },
-  "homepage": "https://github.com/NickGenghar/Serv#readme",
+  "homepage": "https://github.com/NickGenghar/Serv_Old#readme",
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "discord.js": "^12.2.0",
