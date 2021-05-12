@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const YouTube = require('simple-youtube-api');
 
 const token = require('../../configurations/token.json').ytkey;
+if(!token) return;
 const youtube = new YouTube(token);
 
 module.exports = {

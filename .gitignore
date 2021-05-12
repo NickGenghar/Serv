@@ -3,7 +3,9 @@ data/
 temp/
 test/
 ignored/
+queued/
 .vscode/
+.env
 commands/Developer/upgrade.js
 configurations/master.json
 configurations/token.json

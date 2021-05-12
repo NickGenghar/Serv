@@ -5,26 +5,7 @@ const YouTube = require('simple-youtube-api');
 
 const color = require.main.require('./configurations/color.json');
 const token = require.main.require('./configurations/token.json');
-if(!token.ytkey) {
-    return module.exports = {
-        name: 'play',
-        alias: [module.exports.name, 'p'],
-        desc: 'Play music with the bot.',
-        usage: ['This module is disabled due to incomplete data.'],
-        dev: false,
-        mod: false,
-        activate: false,
-        /**
-         * @param {Discord.Message} msg The Discord.Message() object.
-         * @param {Array<String>} [args] The argument.
-         * @param {Map<String,any> | Discord.Collection<String|any>} [col] The collector.
-         */
-        run: async (msg, args, col) => {
-            return msg.channel.send('Sorry, this module is disabled due to incomplete data. Please contact the developer in regards to this issue.');
-        }
-    }
-}
-
+if(!token.ytkey) return;
 const youtube = new YouTube(token.ytkey);
 
 /**
